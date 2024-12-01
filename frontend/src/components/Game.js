@@ -8,6 +8,9 @@ const Game = () => {
     const [players, setPlayers] = useState(new Set());
     const [error, setError] = useState('');
     const [isHost, setIsHost] = useState(false);
+    const [currentPlayer, setCurrentPlayer] = useState(null);
+    const [inputText, setInputText] = useState('');
+    const [gamePhase, setGamePhase] = useState('waiting'); // waiting, playing
     const wsRef = useRef(null);
 
     // Generate a random player ID on component mount
@@ -47,6 +50,15 @@ const Game = () => {
                         case 'players_update':
                             console.log('Players updated:', message.data.players);
                             setPlayers(new Set(message.data.players));
+                            break;
+                        case 'game_started':
+                            console.log('Game started:', message.data);
+                            setGamePhase('playing');
+                            setCurrentPlayer(message.data.currentPlayer);
+                            break;
+                        case 'text_submitted':
+                            console.log('Text submitted:', message.data);
+                            setInputText('');
                             break;
                         case 'error':
                             console.error('Received error:', message.data.message);
@@ -138,6 +150,27 @@ const Game = () => {
         }
     };
 
+    const handleStartGame = () => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'start_game',
+                data: { gameCode }
+            }));
+        }
+    };
+
+    const handleSubmitText = () => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'submit_text',
+                data: { 
+                    gameCode,
+                    text: inputText 
+                }
+            }));
+        }
+    };
+
     const renderGameState = () => {
         switch (gameState) {
             case 'initial':
@@ -196,7 +229,65 @@ const Game = () => {
                             isHost={isHost}
                         />
                         {isHost && players.size > 1 && gameState === 'waiting' && (
-                            <button onClick={() => setGameState('playing')}>Start Game</button>
+                            <button onClick={handleStartGame}>Start Game</button>
+                        )}
+                        {gamePhase === 'waiting' ? (
+                            <div>
+                                <h2>Waiting Room</h2>
+                                <p>Players in game:</p>
+                                <ul>
+                                    {Array.from(players).map(player => (
+                                        <li key={player}>{player === playerId ? `${player} (You)` : player}</li>
+                                    ))}
+                                </ul>
+                                {isHost && players.size >= 2 && (
+                                    <button onClick={handleStartGame}>Start Game</button>
+                                )}
+                            </div>
+                        ) : (
+                            <div>
+                                <h2>Game in Progress</h2>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                    {Array.from(players).map(player => (
+                                        <div 
+                                            key={player} 
+                                            style={{ 
+                                                padding: '10px', 
+                                                border: player === currentPlayer ? '2px solid green' : '1px solid gray',
+                                                backgroundColor: player === currentPlayer ? '#e6ffe6' : 'transparent'
+                                            }}
+                                        >
+                                            {player === playerId ? 'You' : player}
+                                            {player === currentPlayer && ' (Playing)'}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {currentPlayer === playerId ? (
+                                    <div>
+                                        <h3>Your Turn!</h3>
+                                        <p>Enter your text (up to 255 characters):</p>
+                                        <textarea
+                                            value={inputText}
+                                            onChange={(e) => setInputText(e.target.value.slice(0, 255))}
+                                            maxLength={255}
+                                            rows={4}
+                                            style={{ width: '100%', maxWidth: '500px' }}
+                                        />
+                                        <p>{255 - inputText.length} characters remaining</p>
+                                        <button 
+                                            onClick={handleSubmitText}
+                                            disabled={inputText.length === 0}
+                                        >
+                                            Submit
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play...</h3>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 );

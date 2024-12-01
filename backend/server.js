@@ -116,25 +116,29 @@ wss.on('connection', (ws) => {
 
 // Handle different message types
 function handleMessage(ws, message) {
-    switch (message.type) {
+    const { type, data } = message;
+    
+    switch (type) {
         case 'create_game':
-            handleCreateGame(ws, message.data);
+            handleCreateGame(ws, data);
             break;
-
         case 'join_game':
-            handleJoinGame(ws, message.data);
+            handleJoinGame(ws, data);
             break;
-
+        case 'start_game':
+            handleStartGame(ws, data);
+            break;
+        case 'submit_text':
+            handleSubmitText(ws, data);
+            break;
         case 'signal':
-            handleSignaling(ws, message.data);
+            handleSignaling(ws, data);
             break;
-
         case 'game_state_update':
-            handleGameStateUpdate(ws, message.data);
+            handleGameStateUpdate(ws, data);
             break;
-
         default:
-            console.log('Unknown message type:', message.type);
+            console.log('Unknown message type:', type);
     }
 }
 
@@ -200,6 +204,69 @@ function handleJoinGame(ws, data) {
                 type: 'players_update',
                 data: {
                     players: Array.from(game.players)
+                }
+            }));
+        }
+    });
+}
+
+// Handle game start
+function handleStartGame(ws, data) {
+    const { gameCode } = data;
+    const game = games.get(gameCode);
+    
+    if (!game) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            data: { message: 'Game not found' }
+        }));
+        return;
+    }
+
+    // Convert players Set to Array and randomly select first player
+    const playersArray = Array.from(game.players);
+    const firstPlayer = playersArray[Math.floor(Math.random() * playersArray.length)];
+    
+    // Update game state
+    game.state = {
+        status: 'playing',
+        currentPlayer: firstPlayer,
+        phase: 'input',
+        round: 1
+    };
+
+    // Broadcast game start to all players
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && client.gameCode === gameCode) {
+            client.send(JSON.stringify({
+                type: 'game_started',
+                data: {
+                    currentPlayer: firstPlayer,
+                    players: playersArray
+                }
+            }));
+        }
+    });
+}
+
+// Handle text submission
+function handleSubmitText(ws, data) {
+    const { gameCode, text } = data;
+    const game = games.get(gameCode);
+    
+    if (!game) return;
+    
+    // Store the submitted text
+    game.state.submittedText = text;
+    
+    // Broadcast text submission to all players
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && client.gameCode === gameCode) {
+            client.send(JSON.stringify({
+                type: 'text_submitted',
+                data: {
+                    text: text,
+                    currentPlayer: game.state.currentPlayer
                 }
             }));
         }
