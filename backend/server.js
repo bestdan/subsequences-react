@@ -64,6 +64,19 @@ app.get('/api/games/:code', (req, res) => {
         }
 
         const game = games.get(code);
+        
+        // Broadcast to all clients that a new player is checking the game
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN && client.gameCode === code) {
+                client.send(JSON.stringify({
+                    type: 'players_update',
+                    data: {
+                        players: Array.from(game.players)
+                    }
+                }));
+            }
+        });
+
         res.json({
             exists: true,
             players: Array.from(game.players),
@@ -96,11 +109,8 @@ wss.on('connection', (ws) => {
     });
 
     ws.on('close', () => {
-        const clientData = clients.get(ws);
-        if (clientData) {
-            handlePlayerDisconnect(ws, clientData);
-            clients.delete(ws);
-        }
+        handlePlayerDisconnect(ws);
+        clients.delete(ws);
     });
 });
 
@@ -152,34 +162,48 @@ function handleCreateGame(ws, data) {
 
 // Handle player joining
 function handleJoinGame(ws, data) {
-    const { gameCode } = data;
-    const clientData = clients.get(ws);
+    const { gameCode, playerId } = data;
     
-    if (games.has(gameCode)) {
-        const game = games.get(gameCode);
-        game.players.add(clientData.id);
-        clients.get(ws).gameCode = gameCode;
-
-        // Notify the new player
+    if (!games.has(gameCode)) {
         ws.send(JSON.stringify({
-            type: 'game_joined',
-            data: {
-                gameCode,
-                playerId: clientData.id,
-                isHost: false,
-                state: game.state
-            }
+            type: 'error',
+            data: { message: 'Game not found' }
         }));
-
-        // Notify other players in the game
-        broadcastToGame(gameCode, {
-            type: 'player_joined',
-            data: {
-                playerId: clientData.id,
-                playerCount: game.players.size
-            }
-        }, ws);
+        return;
     }
+
+    const game = games.get(gameCode);
+    game.players.add(playerId);
+    
+    // Store game code and player ID in the WebSocket connection
+    ws.gameCode = gameCode;
+    ws.playerId = playerId;
+
+    // Notify the new player
+    ws.send(JSON.stringify({
+        type: 'game_joined',
+        data: {
+            gameCode,
+            playerId,
+            isHost: game.host === playerId,
+            players: Array.from(game.players)
+        }
+    }));
+
+    console.log(`Player ${playerId} joined game ${gameCode}`);
+    console.log('Current players:', Array.from(game.players));
+
+    // Broadcast to all clients in the game that a new player has joined
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && client.gameCode === gameCode) {
+            client.send(JSON.stringify({
+                type: 'players_update',
+                data: {
+                    players: Array.from(game.players)
+                }
+            }));
+        }
+    });
 }
 
 // Handle signaling between peers
@@ -220,30 +244,33 @@ function handleGameStateUpdate(ws, data) {
 }
 
 // Handle player disconnection
-function handlePlayerDisconnect(ws, clientData) {
-    const { gameCode } = clientData;
-    
+function handlePlayerDisconnect(ws) {
+    const gameCode = ws.gameCode;
+    const playerId = ws.playerId;
+
     if (gameCode && games.has(gameCode)) {
         const game = games.get(gameCode);
-        game.players.delete(clientData.id);
-        
-        if (game.players.size === 0) {
-            games.delete(gameCode);
-        } else {
-            // If host disconnected, assign new host
-            if (game.host === clientData.id) {
-                game.host = Array.from(game.players)[0];
+        game.players.delete(playerId);
+
+        console.log(`Player ${playerId} disconnected from game ${gameCode}`);
+        console.log('Remaining players:', Array.from(game.players));
+
+        // Broadcast to remaining players
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN && client.gameCode === gameCode) {
+                client.send(JSON.stringify({
+                    type: 'players_update',
+                    data: {
+                        players: Array.from(game.players)
+                    }
+                }));
             }
-            
-            // Notify remaining players
-            broadcastToGame(gameCode, {
-                type: 'player_disconnected',
-                data: {
-                    playerId: clientData.id,
-                    newHost: game.host,
-                    playerCount: game.players.size
-                }
-            });
+        });
+
+        // If no players left, remove the game
+        if (game.players.size === 0) {
+            console.log(`Removing empty game ${gameCode}`);
+            games.delete(gameCode);
         }
     }
 }

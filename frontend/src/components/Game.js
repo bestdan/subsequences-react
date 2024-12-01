@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import WebRTCConnection from './WebRTCConnection';
 
 const Game = () => {
@@ -8,6 +8,7 @@ const Game = () => {
     const [players, setPlayers] = useState(new Set());
     const [error, setError] = useState('');
     const [isHost, setIsHost] = useState(false);
+    const wsRef = useRef(null);
 
     // Generate a random player ID on component mount
     useEffect(() => {
@@ -15,6 +16,66 @@ const Game = () => {
         setPlayerId(id);
         console.log('Generated player ID:', id);
     }, []);
+
+    // WebSocket connection setup
+    useEffect(() => {
+        if (gameState === 'waiting' || gameState === 'playing') {
+            const ws = new WebSocket('ws://localhost:3001');
+            wsRef.current = ws;
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                if (gameCode && playerId) {
+                    console.log('Sending join_game message:', { gameCode, playerId });
+                    ws.send(JSON.stringify({
+                        type: 'join_game',
+                        data: { gameCode, playerId }
+                    }));
+                }
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log('Received WebSocket message:', message);
+
+                    switch (message.type) {
+                        case 'game_joined':
+                            console.log('Game joined:', message.data);
+                            setPlayers(new Set(message.data.players));
+                            break;
+                        case 'players_update':
+                            console.log('Players updated:', message.data.players);
+                            setPlayers(new Set(message.data.players));
+                            break;
+                        case 'error':
+                            console.error('Received error:', message.data.message);
+                            setError(message.data.message);
+                            break;
+                        default:
+                            console.log('Unknown message type:', message.type);
+                    }
+                } catch (error) {
+                    console.error('Error handling WebSocket message:', error);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                setError('Connection error. Please try again.');
+            };
+
+            return () => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            };
+        }
+    }, [gameState, gameCode, playerId]);
 
     const createGame = async () => {
         try {
