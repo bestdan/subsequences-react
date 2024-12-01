@@ -1,0 +1,201 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 1rem;
+  color: white;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 1.8em;
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f5f5f5;
+}
+
+.game-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.game-menu {
+  text-align: center;
+}
+
+.game-menu h2 {
+  color: #282c34;
+  margin-bottom: 2rem;
+}
+
+.menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.join-game {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.join-game input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1.2em;
+  text-transform: uppercase;
+  width: 120px;
+  text-align: center;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-top: 1rem;
+}
+
+.game-lobby {
+  text-align: center;
+}
+
+.game-code {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  font-size: 1.2em;
+}
+
+.game-code span {
+  font-weight: bold;
+  color: #0066cc;
+  margin-left: 0.5rem;
+}
+
+.players-list {
+  margin: 2rem 0;
+}
+
+.players-list ul {
+  list-style: none;
+  padding: 0;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.players-list li {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-board {
+  text-align: left;
+}
+
+button {
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: #0052a3;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* WebRTC styles */
+.webrtc-connection {
+  margin-top: 2rem;
+}
+
+.peer-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.message-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.message-input input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.messages {
+  margin-top: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.messages ul {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.messages li {
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.messages li.sent {
+  background-color: #e3f2fd;
+  margin-left: 20%;
+}
+
+.messages li.received {
+  background-color: #f5f5f5;
+  margin-right: 20%;
+}
+
+.message-sender {
+  font-weight: bold;
+  min-width: 60px;
+}
+
+.message-content {
+  flex-grow: 1;
+}
+
+.message-time {
+  color: #666;
+  font-size: 0.8em;
+}
