@@ -227,12 +227,17 @@ function handleStartGame(ws, data) {
     const playersArray = Array.from(game.players);
     const firstPlayer = playersArray[Math.floor(Math.random() * playersArray.length)];
     
+    // Calculate total rounds (3 * number of players)
+    const totalRounds = playersArray.length * 3;
+
     // Update game state
     game.state = {
         status: 'playing',
         currentPlayer: firstPlayer,
         phase: 'input',
-        round: 1
+        round: 1,
+        totalRounds: totalRounds,
+        story: []
     };
 
     // Broadcast game start to all players
@@ -243,13 +248,14 @@ function handleStartGame(ws, data) {
                 data: {
                     currentPlayer: firstPlayer,
                     players: playersArray,
-                    gameCode: gameCode
+                    gameCode: gameCode,
+                    totalRounds: totalRounds
                 }
             }));
         }
     });
 
-    console.log(`Game ${gameCode} started. First player: ${firstPlayer}`);
+    console.log(`Game ${gameCode} started. First player: ${firstPlayer}, Total Rounds: ${totalRounds}`);
 }
 
 // Handle text submission
@@ -261,12 +267,6 @@ function handleSubmitText(ws, data) {
         console.error(`Game not found for code: ${gameCode}`);
         return;
     }
-
-    console.log('Current game state before submission:', {
-        currentPlayer: game.state.currentPlayer,
-        players: Array.from(game.players),
-        round: game.state.round
-    });
 
     // Initialize game story if not exists
     if (!game.state.story) {
@@ -285,39 +285,39 @@ function handleSubmitText(ws, data) {
     const nextPlayerIndex = (currentPlayerIndex + 1) % playersArray.length;
     const nextPlayer = playersArray[nextPlayerIndex];
 
+    // Increment round
+    game.state.round += 1;
+
+    // Check if game is over
+    const isGameOver = game.state.round > game.state.totalRounds;
+
     // Update game state
     game.state.currentPlayer = nextPlayer;
-    game.state.round = (game.state.round || 0) + 1;
-
-    console.log('Updated game state after submission:', {
-        currentPlayer: game.state.currentPlayer,
-        nextPlayer: nextPlayer,
-        round: game.state.round,
-        story: game.state.story
-    });
 
     // Broadcast to all players
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN && client.gameCode === gameCode) {
             const message = {
-                type: 'turn_update',
+                type: isGameOver ? 'game_over' : 'turn_update',
                 data: {
                     gameCode: gameCode,
-                    currentPlayer: nextPlayer,
+                    currentPlayer: isGameOver ? null : nextPlayer,
                     previousText: text,
                     previousPlayer: game.state.currentPlayer,
                     story: game.state.story,
-                    round: game.state.round
+                    round: game.state.round,
+                    totalRounds: game.state.totalRounds,
+                    isGameOver: isGameOver
                 }
             };
             
-            console.log(`Sending turn update to ${client.playerId}:`, message);
+            console.log(`Sending ${isGameOver ? 'game over' : 'turn update'} to ${client.playerId}:`, message);
             
             client.send(JSON.stringify(message));
         }
     });
 
-    console.log(`Turn update in game ${gameCode}. Next player: ${nextPlayer}`);
+    console.log(`${isGameOver ? 'Game Over' : 'Turn update'} in game ${gameCode}. Next player: ${isGameOver ? 'N/A' : nextPlayer}`);
 }
 
 // Handle signaling between peers

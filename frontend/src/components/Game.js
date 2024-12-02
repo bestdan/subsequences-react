@@ -14,6 +14,8 @@ const Game = () => {
     const [story, setStory] = useState([]);
     const [previousText, setPreviousText] = useState('');
     const [round, setRound] = useState(1);
+    const [totalRounds, setTotalRounds] = useState(0);
+    const [isGameOver, setIsGameOver] = useState(false);
     const wsRef = useRef(null);
 
     // Generate a random player ID on component mount
@@ -61,6 +63,7 @@ const Game = () => {
                                 setGamePhase('playing');
                                 setCurrentPlayer(message.data.currentPlayer);
                                 setPlayers(new Set(message.data.players));
+                                setTotalRounds(message.data.totalRounds);
                             }
                             break;
                         case 'turn_update':
@@ -80,6 +83,14 @@ const Game = () => {
                                 
                                 // Clear input text
                                 setInputText('');
+                            }
+                            break;
+                        case 'game_over':
+                            console.log('Game over received:', message.data);
+                            if (message.data.gameCode === gameCode) {
+                                setIsGameOver(true);
+                                setStory(message.data.story);
+                                setRound(message.data.round);
                             }
                             break;
                         case 'text_submitted':
@@ -208,6 +219,27 @@ const Game = () => {
     };
 
     const renderGameState = () => {
+        if (isGameOver) {
+            return (
+                <div>
+                    <h2>Game Over!</h2>
+                    <h3>Our Collaborative Story:</h3>
+                    <div style={{ 
+                        backgroundColor: '#f0f0f0', 
+                        padding: '20px', 
+                        borderRadius: '10px', 
+                        whiteSpace: 'pre-wrap' 
+                    }}>
+                        {story.map((entry, index) => (
+                            <p key={index}>
+                                {entry.player === playerId ? 'You' : entry.player}: {entry.text}
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
         switch (gameState) {
             case 'initial':
                 return (
@@ -285,6 +317,8 @@ const Game = () => {
                                         </div>
                                     ))}
                                 </div>
+
+                                <p>Round {round} of {totalRounds}</p>
 
                                 {/* Display previous text if exists */}
                                 {story.length > 0 && (
