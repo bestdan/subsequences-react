@@ -60,6 +60,7 @@ const Game = () => {
                             console.log('Game started:', message.data);
                             // Only update if the game code matches
                             if (message.data.gameCode === gameCode) {
+                                setGameState('playing');
                                 setGamePhase('playing');
                                 setCurrentPlayer(message.data.currentPlayer);
                                 setPlayers(new Set(message.data.players));
@@ -188,11 +189,19 @@ const Game = () => {
     };
 
     const handleStartGame = () => {
+        console.log('Start game clicked', {
+            gameCode,
+            isHost,
+            players: Array.from(players)
+        });
+
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
                 type: 'start_game',
                 data: { gameCode }
             }));
+        } else {
+            console.error('WebSocket is not open');
         }
     };
 
@@ -272,10 +281,9 @@ const Game = () => {
                 );
 
             case 'waiting':
-            case 'playing':
                 return (
                     <div className="game-lobby">
-                        <h2>{gameState === 'waiting' ? 'Game Lobby' : 'Playing'}</h2>
+                        <h2>Game Lobby</h2>
                         <div className="game-code">
                             Game Code: <span>{gameCode}</span>
                         </div>
@@ -290,83 +298,67 @@ const Game = () => {
                                 ))}
                             </ul>
                         </div>
-                        <WebRTCConnection
-                            gameCode={gameCode}
-                            playerId={playerId}
-                            players={players}
-                            isHost={isHost}
-                        />
-                        {isHost && players.size > 1 && gameState === 'waiting' && (
+                        {isHost && players.size >= 2 && (
                             <button onClick={handleStartGame}>Start Game</button>
                         )}
-                        {gamePhase === 'playing' && (
-                            <div>
-                                <h2>Game in Progress</h2>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                    {Array.from(players).map(player => (
-                                        <div 
-                                            key={player} 
-                                            style={{ 
-                                                padding: '10px', 
-                                                border: player === currentPlayer ? '2px solid green' : '1px solid gray',
-                                                backgroundColor: player === currentPlayer ? '#e6ffe6' : 'transparent'
-                                            }}
-                                        >
-                                            {player === playerId ? 'You' : player}
-                                            {player === currentPlayer && ' (Playing)'}
-                                        </div>
-                                    ))}
+                    </div>
+                );
+
+            case 'playing':
+                return (
+                    <div className="game-lobby">
+                        <h2>Game in Progress</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            {Array.from(players).map(player => (
+                                <div 
+                                    key={player} 
+                                    style={{ 
+                                        padding: '10px', 
+                                        border: player === currentPlayer ? '2px solid green' : '1px solid gray',
+                                        backgroundColor: player === currentPlayer ? '#e6ffe6' : 'transparent'
+                                    }}
+                                >
+                                    {player === playerId ? 'You' : player}
+                                    {player === currentPlayer && ' (Playing)'}
                                 </div>
+                            ))}
+                        </div>
 
-                                <p>Round {round} of {totalRounds}</p>
+                        <p>Round {round} of {totalRounds}</p>
 
-                                {/* Display previous text if exists */}
-                                {story.length > 0 && (
-                                    <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0' }}>
-                                        <h3>Story So Far:</h3>
-                                        {story.map((entry, index) => (
-                                            <p key={index}>
-                                                {entry.player === playerId ? 'You' : entry.player}: {entry.text}
-                                            </p>
-                                        ))}
+                        {currentPlayer === playerId ? (
+                            <div>
+                                <h3>Your Turn! (Round {round})</h3>
+                                {previousText && (
+                                    <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
+                                        <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
+                                        <p>{previousText}</p>
                                     </div>
                                 )}
-
-                                {currentPlayer === playerId ? (
-                                    <div>
-                                        <h3>Your Turn! (Round {round})</h3>
-                                        {previousText && (
-                                            <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
-                                                <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
-                                                <p>{previousText}</p>
-                                            </div>
-                                        )}
-                                        <p>Continue the story (up to 255 characters):</p>
-                                        <textarea
-                                            value={inputText}
-                                            onChange={(e) => setInputText(e.target.value.slice(0, 255))}
-                                            maxLength={255}
-                                            rows={4}
-                                            style={{ width: '100%', maxWidth: '500px' }}
-                                            placeholder="Write the next part of the story..."
-                                        />
-                                        <p>{255 - inputText.length} characters remaining</p>
-                                        <button 
-                                            onClick={handleSubmitText}
-                                            disabled={inputText.length === 0}
-                                        >
-                                            Submit
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play... (Round {round})</h3>
-                                        {previousText && (
-                                            <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
-                                                <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
-                                                <p>{previousText}</p>
-                                            </div>
-                                        )}
+                                <p>Continue the story (up to 255 characters):</p>
+                                <textarea
+                                    value={inputText}
+                                    onChange={(e) => setInputText(e.target.value.slice(0, 255))}
+                                    maxLength={255}
+                                    rows={4}
+                                    style={{ width: '100%', maxWidth: '500px' }}
+                                    placeholder="Write the next part of the story..."
+                                />
+                                <p>{255 - inputText.length} characters remaining</p>
+                                <button 
+                                    onClick={handleSubmitText}
+                                    disabled={inputText.length === 0}
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        ) : (
+                            <div>
+                                <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play... (Round {round})</h3>
+                                {previousText && (
+                                    <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
+                                        <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
+                                        <p>{previousText}</p>
                                     </div>
                                 )}
                             </div>
