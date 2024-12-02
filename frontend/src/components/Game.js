@@ -355,12 +355,6 @@ const Game = () => {
                         ) : (
                             <div>
                                 <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play... (Round {round})</h3>
-                                {previousText && (
-                                    <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
-                                        <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
-                                        <p>{previousText}</p>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>
