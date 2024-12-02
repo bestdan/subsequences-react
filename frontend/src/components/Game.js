@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import WebRTCConnection from './WebRTCConnection';
-
+import {GameStoryFinal} from './game_over.tsx';
+import {GameStory} from './game_story.tsx';
 const Game = () => {
     const [gameState, setGameState] = useState('initial'); // initial, creating, joining, waiting, playing
     const [gameCode, setGameCode] = useState('');
@@ -229,41 +229,7 @@ const Game = () => {
 
     const renderGameState = () => {
         if (isGameOver) {
-            return (
-                <div>
-                    <h2>Game Over!</h2>
-                    <h3>Our Collaborative Story:</h3>
-                    <div style={{ 
-                        backgroundColor: '#f0f0f0', 
-                        padding: '20px', 
-                        borderRadius: '10px', 
-                        whiteSpace: 'pre-wrap' 
-                    }}>
-                        {story.map((entry, index) => (
-                            <div key={index} style={{ 
-                                display: 'flex', 
-                                marginBottom: '10px' 
-                            }}>
-                                <div style={{ 
-                                    fontWeight: 'bold', 
-                                    marginRight: '10px', 
-                                    minWidth: '100px', 
-                                    textAlign: 'left' 
-                                }}>
-                                    {entry.player === playerId ? 'You' : entry.player}:
-                                </div>
-                                <div style={{ 
-                                    flex: 1, 
-                                    paddingLeft: '10px', 
-                                    borderLeft: '2px solid #ccc' 
-                                }}>
-                                    {entry.text}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
+            return GameStoryFinal({storyEntry: story, playerId: playerId});
         }
 
         switch (gameState) {
