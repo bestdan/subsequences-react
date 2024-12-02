@@ -242,11 +242,14 @@ function handleStartGame(ws, data) {
                 type: 'game_started',
                 data: {
                     currentPlayer: firstPlayer,
-                    players: playersArray
+                    players: playersArray,
+                    gameCode: gameCode
                 }
             }));
         }
     });
+
+    console.log(`Game ${gameCode} started. First player: ${firstPlayer}`);
 }
 
 // Handle text submission
@@ -254,23 +257,67 @@ function handleSubmitText(ws, data) {
     const { gameCode, text } = data;
     const game = games.get(gameCode);
     
-    if (!game) return;
-    
-    // Store the submitted text
-    game.state.submittedText = text;
-    
-    // Broadcast text submission to all players
+    if (!game) {
+        console.error(`Game not found for code: ${gameCode}`);
+        return;
+    }
+
+    console.log('Current game state before submission:', {
+        currentPlayer: game.state.currentPlayer,
+        players: Array.from(game.players),
+        round: game.state.round
+    });
+
+    // Initialize game story if not exists
+    if (!game.state.story) {
+        game.state.story = [];
+    }
+
+    // Add current player's text to the story
+    game.state.story.push({
+        player: game.state.currentPlayer,
+        text: text
+    });
+
+    // Determine next player
+    const playersArray = Array.from(game.players);
+    const currentPlayerIndex = playersArray.indexOf(game.state.currentPlayer);
+    const nextPlayerIndex = (currentPlayerIndex + 1) % playersArray.length;
+    const nextPlayer = playersArray[nextPlayerIndex];
+
+    // Update game state
+    game.state.currentPlayer = nextPlayer;
+    game.state.round = (game.state.round || 0) + 1;
+
+    console.log('Updated game state after submission:', {
+        currentPlayer: game.state.currentPlayer,
+        nextPlayer: nextPlayer,
+        round: game.state.round,
+        story: game.state.story
+    });
+
+    // Broadcast to all players
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN && client.gameCode === gameCode) {
-            client.send(JSON.stringify({
-                type: 'text_submitted',
+            const message = {
+                type: 'turn_update',
                 data: {
-                    text: text,
-                    currentPlayer: game.state.currentPlayer
+                    gameCode: gameCode,
+                    currentPlayer: nextPlayer,
+                    previousText: text,
+                    previousPlayer: game.state.currentPlayer,
+                    story: game.state.story,
+                    round: game.state.round
                 }
-            }));
+            };
+            
+            console.log(`Sending turn update to ${client.playerId}:`, message);
+            
+            client.send(JSON.stringify(message));
         }
     });
+
+    console.log(`Turn update in game ${gameCode}. Next player: ${nextPlayer}`);
 }
 
 // Handle signaling between peers

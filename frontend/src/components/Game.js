@@ -11,6 +11,9 @@ const Game = () => {
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [inputText, setInputText] = useState('');
     const [gamePhase, setGamePhase] = useState('waiting'); // waiting, playing
+    const [story, setStory] = useState([]);
+    const [previousText, setPreviousText] = useState('');
+    const [round, setRound] = useState(1);
     const wsRef = useRef(null);
 
     // Generate a random player ID on component mount
@@ -53,8 +56,31 @@ const Game = () => {
                             break;
                         case 'game_started':
                             console.log('Game started:', message.data);
-                            setGamePhase('playing');
-                            setCurrentPlayer(message.data.currentPlayer);
+                            // Only update if the game code matches
+                            if (message.data.gameCode === gameCode) {
+                                setGamePhase('playing');
+                                setCurrentPlayer(message.data.currentPlayer);
+                                setPlayers(new Set(message.data.players));
+                            }
+                            break;
+                        case 'turn_update':
+                            console.log('Turn update received:', message.data);
+                            if (message.data.gameCode === gameCode) {
+                                console.log('Updating game state:', {
+                                    currentPlayer: message.data.currentPlayer,
+                                    previousText: message.data.previousText,
+                                    story: message.data.story,
+                                    round: message.data.round
+                                });
+
+                                setCurrentPlayer(message.data.currentPlayer);
+                                setPreviousText(message.data.previousText);
+                                setStory(message.data.story);
+                                setRound(message.data.round);
+                                
+                                // Clear input text
+                                setInputText('');
+                            }
                             break;
                         case 'text_submitted':
                             console.log('Text submitted:', message.data);
@@ -160,6 +186,13 @@ const Game = () => {
     };
 
     const handleSubmitText = () => {
+        console.log('Submitting text:', {
+            gameCode,
+            playerId,
+            currentPlayer,
+            inputText
+        });
+
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
                 type: 'submit_text',
@@ -168,6 +201,9 @@ const Game = () => {
                     text: inputText 
                 }
             }));
+            
+            // Clear input text immediately
+            setInputText('');
         }
     };
 
@@ -231,20 +267,7 @@ const Game = () => {
                         {isHost && players.size > 1 && gameState === 'waiting' && (
                             <button onClick={handleStartGame}>Start Game</button>
                         )}
-                        {gamePhase === 'waiting' ? (
-                            <div>
-                                <h2>Waiting Room</h2>
-                                <p>Players in game:</p>
-                                <ul>
-                                    {Array.from(players).map(player => (
-                                        <li key={player}>{player === playerId ? `${player} (You)` : player}</li>
-                                    ))}
-                                </ul>
-                                {isHost && players.size >= 2 && (
-                                    <button onClick={handleStartGame}>Start Game</button>
-                                )}
-                            </div>
-                        ) : (
+                        {gamePhase === 'playing' && (
                             <div>
                                 <h2>Game in Progress</h2>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -263,16 +286,35 @@ const Game = () => {
                                     ))}
                                 </div>
 
+                                {/* Display previous text if exists */}
+                                {story.length > 0 && (
+                                    <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0' }}>
+                                        <h3>Story So Far:</h3>
+                                        {story.map((entry, index) => (
+                                            <p key={index}>
+                                                {entry.player === playerId ? 'You' : entry.player}: {entry.text}
+                                            </p>
+                                        ))}
+                                    </div>
+                                )}
+
                                 {currentPlayer === playerId ? (
                                     <div>
-                                        <h3>Your Turn!</h3>
-                                        <p>Enter your text (up to 255 characters):</p>
+                                        <h3>Your Turn! (Round {round})</h3>
+                                        {previousText && (
+                                            <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
+                                                <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
+                                                <p>{previousText}</p>
+                                            </div>
+                                        )}
+                                        <p>Continue the story (up to 255 characters):</p>
                                         <textarea
                                             value={inputText}
                                             onChange={(e) => setInputText(e.target.value.slice(0, 255))}
                                             maxLength={255}
                                             rows={4}
                                             style={{ width: '100%', maxWidth: '500px' }}
+                                            placeholder="Write the next part of the story..."
                                         />
                                         <p>{255 - inputText.length} characters remaining</p>
                                         <button 
@@ -284,7 +326,13 @@ const Game = () => {
                                     </div>
                                 ) : (
                                     <div>
-                                        <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play...</h3>
+                                        <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play... (Round {round})</h3>
+                                        {previousText && (
+                                            <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
+                                                <p>Previous text by {story[story.length - 1].player === playerId ? 'you' : story[story.length - 1].player}:</p>
+                                                <p>{previousText}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
