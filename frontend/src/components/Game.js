@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {GameStoryFinal} from './game_over.tsx';
-import {GameStory} from './game_story.tsx';
+import {GameStoryFinal} from './game_final.tsx';
+
 const Game = () => {
     const [gameState, setGameState] = useState('initial'); // initial, creating, joining, waiting, playing
     const [gameCode, setGameCode] = useState('');
@@ -229,7 +229,7 @@ const Game = () => {
 
     const renderGameState = () => {
         if (isGameOver) {
-            return GameStoryFinal({storyEntry: story, playerId: playerId});
+            <GameStoryFinal storyEntry={story} playerId={playerId}/>
         }
 
         switch (gameState) {
