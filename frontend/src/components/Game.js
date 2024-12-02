@@ -240,9 +240,26 @@ const Game = () => {
                         whiteSpace: 'pre-wrap' 
                     }}>
                         {story.map((entry, index) => (
-                            <p key={index}>
-                                {entry.player === playerId ? 'You' : entry.player}: {entry.text}
-                            </p>
+                            <div key={index} style={{ 
+                                display: 'flex', 
+                                marginBottom: '10px' 
+                            }}>
+                                <div style={{ 
+                                    fontWeight: 'bold', 
+                                    marginRight: '10px', 
+                                    minWidth: '100px', 
+                                    textAlign: 'left' 
+                                }}>
+                                    {entry.player === playerId ? 'You' : entry.player}:
+                                </div>
+                                <div style={{ 
+                                    flex: 1, 
+                                    paddingLeft: '10px', 
+                                    borderLeft: '2px solid #ccc' 
+                                }}>
+                                    {entry.text}
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>
