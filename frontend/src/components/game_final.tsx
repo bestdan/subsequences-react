@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { GameStoryFinalData, StoryEntry } from './game_story';
+import { GameStoryFinalData, StoryEntry } from './game_story.tsx';
 
 export function GameStoryFinal({ storyEntries, playerId }: GameStoryFinalData) {
 
