@@ -1,10 +1,10 @@
 
 export interface StoryEntry {
-  playerId: string;
-  text: string;
+  playerId: String;
+  text: String;
 }
 
 export interface GameStoryFinalData {
   storyEntries: StoryEntry[];
-  playerId: string;
+  playerId: String;
 }

@@ -276,7 +276,7 @@ function handleSubmitText(ws, data) {
 
     // Add current player's text to the story
     game.state.story.push({
-        player: game.state.currentPlayer,
+        playerId: game.state.currentPlayer,
         text: text
     });
 

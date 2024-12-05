@@ -4,6 +4,7 @@ import { StoryEntry } from './game_story.tsx';
 import { GameLobby } from './game_lobby.tsx';
 import { LandingMenu } from './landing_menu.tsx';
 import { PlayingScreen } from './playing_screen.tsx';
+import { createGame } from '../methods/create_game.tsx';
 
 type GameState = "initial" | "creating" | "joining" | "waiting" | "playing"
 type GamePhase = "waiting" | "playing"
@@ -13,7 +14,7 @@ const httpBaseAddress = 'http://localhost:3001';
 const Game = () => {
     console.log('Game component mounted');
 
-    const [gameState, setGameState] = useState<GameState>('initial'); // initial, creating, joining, waiting, playing
+    const [gameState, setGameState] = useState<String>('initial'); // initial, creating, joining, waiting, playing
     const [gameCode, setGameCode] = useState('');
     const [playerId] = useState(Math.random().toString(36).slice(2, 9));
     const [players, setPlayers] = useState<Set<string>>(new Set());
@@ -27,7 +28,8 @@ const Game = () => {
     const [round, setRound] = useState(1);
     const [totalRounds, setTotalRounds] = useState(0);
     const [isGameOver, setIsGameOver] = useState(false);
-    const wsRef = useRef<WebSocket>();
+    const wsRef = useRef<WebSocket | null>(null);
+
 
     // WebSocket connection setup
     useEffect(() => {
@@ -139,37 +141,6 @@ const Game = () => {
         }
     }, [gameState, gamePhase, gameCode, playerId]);
 
-    const createGame = async () => {
-        try {
-            console.log('Creating new game...');
-            setGameState('creating');
-            setError('');
-
-            const response = await fetch(`${httpBaseAddress}/api/games`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ playerId }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create game');
-            }
-
-            const data = await response.json();
-            console.log('Game created:', data);
-            setGameCode(data.gameCode);
-            setIsHost(true);
-            setGameState('waiting');
-            setPlayers(new Set([playerId]));
-        } catch (error) {
-            console.error('Error creating game:', error);
-            setError('Failed to create game. Please try again.');
-            setGameState('initial');
-        }
-    };
-
     const joinGame = async (code: string) => {
         try {
             setGameCode(code)
@@ -200,6 +171,19 @@ const Game = () => {
             setError('Failed to join game. Please check the game code and try again.');
             setGameState('initial');
         }
+    };
+
+    const handleCreateGame = async () => {
+        await createGame(
+            playerId,
+            httpBaseAddress,
+            wsRef,
+            setGameState,
+            setError,
+            setGameCode,
+            setIsHost,
+            setPlayers
+        );
     };
 
     const handleStartGame = (gameCode: String) => {
@@ -248,7 +232,7 @@ const Game = () => {
 
         switch (gameState) {
             case 'initial':
-                return <LandingMenu joinGame={joinGame} createGame={createGame} />
+                return <LandingMenu joinGame={joinGame} createGame={handleCreateGame} />
             case 'creating':
             case 'joining':
                 return (

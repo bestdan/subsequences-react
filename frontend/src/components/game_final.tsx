@@ -34,10 +34,11 @@ export function StoryBody({ storyEntries, playerId }: GameStoryFinalData) {
 interface StoryEntryRowProps {
     entry: StoryEntry;
     index: number;
-    playerId: string;
+    playerId: String;
 }
 
 function StoryEntryRow(props: StoryEntryRowProps) {
+    console.log('StoryEntryRow props:', props);
     return (
         <div key={props.index} style={{
             display: 'flex',
