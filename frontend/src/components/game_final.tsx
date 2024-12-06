@@ -34,7 +34,7 @@ export function StoryBody({ storyEntries, playerId }: GameStoryFinalData) {
 interface StoryEntryRowProps {
     entry: StoryEntry;
     index: number;
-    playerId: String;
+    playerId: string;
 }
 
 function StoryEntryRow(props: StoryEntryRowProps) {

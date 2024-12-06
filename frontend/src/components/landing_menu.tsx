@@ -1,28 +1,29 @@
 import React from 'react';
+import { JoinGameProps } from '../methods/join_game';
 
 export function LandingMenu(props: {
-    joinGame: (gameCode: string) => Promise<void>,
+    joinGame: (props: JoinGameProps) => Promise<void>,
     createGame: () => Promise<void>
 }) {
-    const { joinGame, createGame } = props;
+
     return (
         <div className="game-menu">
             <h2>Subsequences Game</h2>
             <div className="menu-options">
-                <StartNewGameButton onClick={() => createGame()} />
+                <StartNewGameButton onClick={props.createGame} />
                 <div>- or -</div>
-                <JoinGameInput onClick={joinGame} />
+                <JoinGameInput onClick={props.joinGame} />
             </div>
         </div>
     );
 }
 
-function StartNewGameButton({ onClick }: { onClick: () => void }) {
+function StartNewGameButton({ onClick }: { onClick: () => Promise<void> }) {
     return (<button onClick={onClick}>Create New Game</button>);
 }
 
-function JoinGameInput({ onClick }: { onClick: (gameCode: string) => Promise<void> }) {
-    const [localGameCode, setLocalGameCode] = React.useState('');
+function JoinGameInput({ onClick }: { onClick: (prop: JoinGameProps) => Promise<void> }) {
+    const [localGameCode, setLocalGameCode] = React.useState<string>('');
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();

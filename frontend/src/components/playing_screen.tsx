@@ -1,9 +1,9 @@
+import { playerId } from "./game_configs";
 import { StoryEntry } from "./game_story";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useContext } from "react";
 
 export function PlayingScreen(props: {
     players: Set<string>,
-    playerId: string,
     currentPlayer: string,
     round: number,
     totalRounds: number,
@@ -15,7 +15,6 @@ export function PlayingScreen(props: {
 }) {
     const {
         players,
-        playerId,
         currentPlayer,
         round,
         totalRounds,
@@ -25,6 +24,8 @@ export function PlayingScreen(props: {
         previousText,
         handleSubmitText
     } = props;
+
+    let pid = useContext(playerId)
 
     return (
         <div className="game-lobby">
@@ -39,7 +40,7 @@ export function PlayingScreen(props: {
                             backgroundColor: player === currentPlayer ? '#e6ffe6' : 'transparent'
                         }}
                     >
-                        {player === playerId ? 'You' : player}
+                        {player === pid ? 'You' : player}
                         {player === currentPlayer && ' (Playing)'}
                     </div>
                 ))}
@@ -47,18 +48,18 @@ export function PlayingScreen(props: {
 
             <p>Round {round} of {totalRounds}</p>
 
-            {currentPlayer === playerId ? (
+            {currentPlayer === pid ? (
                 <div>
                     <h3>Your Turn! (Round {round})</h3>
                     {previousText && (
                         <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
-                            <p>Previous text by {story[story.length - 1].playerId === playerId ? 'you' : story[story.length - 1].playerId}:</p>
+                            <p>Previous text by {story[story.length - 1].playerId === pid ? 'you' : story[story.length - 1].playerId}:</p>
                             <p>{previousText}</p>
                         </div>
                     )}
                     <p>Continue the story (up to 255 characters):</p>
                     <textarea
-                        value={inputText}
+                        value={String(inputText)}
                         onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInputText(e.target.value.slice(0, 255))}
                         maxLength={255}
                         rows={4}
@@ -75,7 +76,7 @@ export function PlayingScreen(props: {
                 </div>
             ) : (
                 <div>
-                    <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play... (Round {round})</h3>
+                    <h3>Waiting for {currentPlayer === pid ? 'you' : currentPlayer} to play... (Round {round})</h3>
                 </div>
             )}
         </div>

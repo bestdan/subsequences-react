@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { playerId } from './game_configs.tsx';
 
 export function GameLobby(props: {
-    gameCode: String,
+    gameCode: string,
     players: Set<string>,
-    playerId: String,
     isHost: boolean,
-    handleStartGame: (gameCode: String) => void
+    handleStartGame: (gameCode: string) => void
 }) {
-    const { handleStartGame, gameCode, players, playerId, isHost } = props;
+    const { handleStartGame, gameCode, players, isHost
+    } = props;
     console.log('GameLobby props:', props);
+    let pid = useContext(playerId)
 
     return (
         <div className="game-lobby">
@@ -20,9 +22,9 @@ export function GameLobby(props: {
                 <h3>Players:</h3>
                 <ul>
                     {Array.from(players).map(id => (
-                        <li key={id}>
-                            {id === playerId ? `${id} (You)` : id}
-                            {isHost && id === playerId && ' (Host)'}
+                        <li>
+                            {id === pid ? `${id} (You)` : id}
+                            {isHost && id === pid && ' (Host)'}
                         </li>
                     ))}
                 </ul>

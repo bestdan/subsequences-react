@@ -1,30 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { GameStoryFinal } from './game_final.tsx';
 import { StoryEntry } from './game_story.tsx';
 import { GameLobby } from './game_lobby.tsx';
 import { LandingMenu } from './landing_menu.tsx';
 import { PlayingScreen } from './playing_screen.tsx';
 import { createGame } from '../methods/create_game.tsx';
+import { joinGame } from '../methods/join_game.tsx';
+import { playerId, wsAddress, httpBaseAddress } from './game_configs.tsx'
 
 type GameState = "initial" | "creating" | "joining" | "waiting" | "playing"
 type GamePhase = "waiting" | "playing"
 
-const wsAddress = 'ws://localhost:3001';
-const httpBaseAddress = 'http://localhost:3001';
 const Game = () => {
     console.log('Game component mounted');
 
-    const [gameState, setGameState] = useState<String>('initial'); // initial, creating, joining, waiting, playing
-    const [gameCode, setGameCode] = useState('');
-    const [playerId] = useState(Math.random().toString(36).slice(2, 9));
+    const [gameState, setGameState] = useState<string>('initial');
+    const [gameCode, setGameCode] = useState<string>('');
     const [players, setPlayers] = useState<Set<string>>(new Set());
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string>('');
     const [isHost, setIsHost] = useState(false);
     const [currentPlayer, setCurrentPlayer] = useState<string>('');
-    const [inputText, setInputText] = useState('');
+    const [inputText, setInputText] = useState<string>('');
     const [gamePhase, setGamePhase] = useState<GamePhase>('waiting'); // waiting, playing
     const [story, setStory] = useState<StoryEntry[]>([]);
-    const [previousText, setPreviousText] = useState('');
+    const [previousText, setPreviousText] = useState<string>('');
     const [round, setRound] = useState(1);
     const [totalRounds, setTotalRounds] = useState(0);
     const [isGameOver, setIsGameOver] = useState(false);
@@ -34,7 +33,7 @@ const Game = () => {
     // WebSocket connection setup
     useEffect(() => {
         if (gameState === 'waiting' || gameState === 'playing') {
-            const ws = new WebSocket(wsAddress);
+            const ws = new WebSocket(useContext(wsAddress));
             wsRef.current = ws;
 
             ws.onopen = () => {
@@ -141,52 +140,9 @@ const Game = () => {
         }
     }, [gameState, gamePhase, gameCode, playerId]);
 
-    const joinGame = async (code: string) => {
-        try {
-            setGameCode(code)
-            console.log('Joining game:', code);
-            setGameState('joining');
-            setError('');
 
-            const response = await fetch(`${httpBaseAddress}/api/games/${code}`);
-            if (!response.ok) {
-                throw new Error('Game not found');
-            }
 
-            const data = await response.json();
-            console.log('Joined game:', data);
-            setPlayers(new Set([...data.players, playerId]));
-            setGameState('waiting');
-            // Notify WebSocket server about the new player
-            if (wsRef.current?.readyState === WebSocket.OPEN) {
-                wsRef.current.send(JSON.stringify({
-                    type: 'playerJoined',
-                    gameCode: code,
-                    playerId: playerId
-                }));
-            }
-
-        } catch (error) {
-            console.error('Error joining game:', error);
-            setError('Failed to join game. Please check the game code and try again.');
-            setGameState('initial');
-        }
-    };
-
-    const handleCreateGame = async () => {
-        await createGame(
-            playerId,
-            httpBaseAddress,
-            wsRef,
-            setGameState,
-            setError,
-            setGameCode,
-            setIsHost,
-            setPlayers
-        );
-    };
-
-    const handleStartGame = (gameCode: String) => {
+    const handleStartGame = (gameCode: string) => {
         console.log('Start game clicked', {
             gameCode,
             isHost,
@@ -227,12 +183,16 @@ const Game = () => {
 
     const renderGameState = () => {
         if (isGameOver) {
-            return <GameStoryFinal storyEntries={story} playerId={playerId} />
+            return <GameStoryFinal storyEntries={story} playerId={useContext(playerId)} />
         }
 
         switch (gameState) {
+
             case 'initial':
-                return <LandingMenu joinGame={joinGame} createGame={handleCreateGame} />
+
+                let joinProps = { gameCode, wsRef, setGameState, setError, setGameCode, setPlayers }
+                let createProps = { playerId, wsRef, setGameState, setError, setGameCode, setIsHost, setPlayers }
+                return <LandingMenu joinGame={() => joinGame(joinProps)} createGame={() => createGame(createProps)} />
             case 'creating':
             case 'joining':
                 return (
@@ -242,12 +202,11 @@ const Game = () => {
                 );
 
             case 'waiting':
-                return <GameLobby handleStartGame={handleStartGame} gameCode={gameCode} players={players} playerId={playerId} isHost={isHost} />
+                return <GameLobby handleStartGame={handleStartGame} gameCode={gameCode} players={players} isHost={isHost} />
 
             case 'playing':
                 return <PlayingScreen
                     players={players}
-                    playerId={playerId}
                     currentPlayer={currentPlayer}
                     previousText={previousText}
                     story={story}
