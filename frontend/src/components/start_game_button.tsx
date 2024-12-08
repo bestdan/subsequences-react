@@ -23,6 +23,7 @@ export function StartNewGameButton() {
     try {
       console.log('Creating new game...');
       setGameState(GameStateFE.CREATING);
+
       setError('');
       console.log('Game state:', gameState);
 
@@ -44,7 +45,6 @@ export function StartNewGameButton() {
       setGameCode(data.gameCode);
       setGameState(GameStateFE.WAITING);
 
-      setPlayers(new Set([playerId]));
 
       // Notify WebSocket server about the new game
       if (ws?.readyState === WebSocket.OPEN) {

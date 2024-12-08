@@ -11,8 +11,6 @@ export function GameLobby() {
     const ws = useWebsocket()
 
     const handleStartGame = (): void => {
-
-
         console.log('Start game clicked', {
             gameCode,
             players: Array.from(players)
@@ -30,6 +28,11 @@ export function GameLobby() {
 
 
     if (!players) return <p>Loading</p>
+    let playersArray = Array.from(players);
+
+    console.log('raw players')
+    console.log(players);
+    console.log(playersArray);
 
     return (
         <div className="game-lobby">
@@ -41,7 +44,7 @@ export function GameLobby() {
                 <h3>Players:</h3>
                 <ul>
                     {Array.from(players).map(id => (
-                        <li>
+                        <li key={id}>
                             {id === playerId ? `${id} (You)` : id}
                         </li>
                     ))}

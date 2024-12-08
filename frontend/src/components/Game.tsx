@@ -11,14 +11,11 @@ import { CurrentRoundProvider } from '../models/round_state.tsx';
 import React from 'react';
 
 const MultiProvider = ({ providers, children }: { providers: JSX.Element[], children: React.ReactNode }) => {
-    console.log('MultiProvider rendered with children:', children);
-
     const result = providers.reduceRight(
         (accChildren, provider) => React.cloneElement(provider, {}, accChildren),
         children
     );
 
-    console.log('MultiProvider final result:', result);
     return result;
 };
 

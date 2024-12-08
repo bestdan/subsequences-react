@@ -5,9 +5,10 @@ function playersStateReducer(players: Set<string>, newPlayers: Set<string>) {
   return newPlayers;
 }
 
-const PlayersContext = createContext<Set<string>>(new Set<string>())
+const PlayersContext = createContext<Set<string>>(new Set<string>([]))
 
-const PlayersDispatchContext = createContext<React.Dispatch<Set<string>>>(() => { })
+const PlayersDispatchContext = createContext<React.Dispatch<Set<string>>>(() => {
+})
 
 export function usePlayers() {
   return useContext(PlayersContext);
@@ -19,7 +20,7 @@ export function useSetPlayers() {
 
 export function PlayersProvider({ children }: { children: React.ReactNode }) {
   const playerId = useContext(PlayerIdContext);
-  const [players, setPlayers] = useReducer(playersStateReducer, new Set(playerId));
+  const [players, setPlayers] = useReducer(playersStateReducer, new Set([playerId]));
   return (
     <PlayersContext.Provider key="players" value={players}>
       <PlayersDispatchContext.Provider value={setPlayers} />
