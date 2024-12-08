@@ -57,7 +57,7 @@ export function StartNewGameButton() {
     }
   };
 
-  return (<button onClick={createGame}>Create New Game</button>);
+  return (<button onClick={createGame}>New Game</button>);
 }
 
 

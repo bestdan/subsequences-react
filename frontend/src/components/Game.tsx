@@ -31,7 +31,6 @@ export function Game() {
             <CurrentRoundProvider key="currentRound" >{null}</CurrentRoundProvider>
         ]}>
             <div className="game-container">
-                <p>hi</p>
                 <RenderGameState />
             </div>
         </MultiProvider>
