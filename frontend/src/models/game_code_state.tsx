@@ -1,9 +1,27 @@
-import { createContext } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 
-export function gameCodeStateReducer(gameCode: string | null, newGameCode: string | null) {
+function gameCodeStateReducer(gameCode: string | null, newGameCode: string | null) {
   return newGameCode;
 }
 
-export const GameCodeContext = createContext<string | null>(null)
+const GameCodeContext = createContext<string | null>(null)
 
-export const GameCodeDispatchContext = createContext<React.Dispatch<string | null>>(() => { })
+const GameCodeDispatchContext = createContext<React.Dispatch<string | null>>(() => { })
+
+export function useGameCode() {
+  return useContext(GameCodeContext);
+}
+
+export function useSetGameCode() {
+  return useContext(GameCodeDispatchContext);
+}
+
+
+export function GameCodeProvider() {
+  const [gameCode, setGameCode] = useReducer(gameCodeStateReducer, null);
+
+  return (<GameCodeContext.Provider key="gameCode" value={gameCode}>
+    <GameCodeDispatchContext.Provider value={setGameCode} />
+  </GameCodeContext.Provider>);
+
+}

@@ -1,11 +1,25 @@
-import { createContext } from 'react';
-import { StoryEntry } from '../components/game_story';
+import { createContext, useContext, useReducer } from 'react';
 
 
 export function currentPlayerStateReducer(currentPlayer: string, newPlayer: string) {
   return newPlayer;
 }
 
-export const CurrentPlayerContext = createContext<string>('none')
+const CurrentPlayerContext = createContext<string>('none')
 
-export const CurrentPlayerDispatchContext = createContext<React.Dispatch<string>>(() => { })
+const CurrentPlayerDispatchContext = createContext<React.Dispatch<string>>(() => { })
+
+export function useCurrentPlayer() {
+  return useContext(CurrentPlayerContext)
+}
+
+export function useSetCurrentPlayer() {
+  return useContext(CurrentPlayerDispatchContext)
+}
+
+export function CurrentPlayerProvider() {
+  const [currentPlayer, setCurrentPlayer] = useReducer(currentPlayerStateReducer, 'none');
+  return (<CurrentPlayerContext.Provider key="currentPlayer" value={currentPlayer}>
+    <CurrentPlayerDispatchContext.Provider value={setCurrentPlayer} />
+  </CurrentPlayerContext.Provider>);
+}

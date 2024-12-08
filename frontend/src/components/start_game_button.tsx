@@ -1,25 +1,30 @@
 import { useContext } from 'react';
-import { GameStateDispatchContext } from '../models/game_state.tsx';
 import { httpBaseAddress, PlayerIdContext } from './game_configs.tsx';
-import { ErrorDispatchContext } from '../models/error_state.tsx';
-import { PlayersDispatchContext } from '../models/players_state.tsx';
-import { WebSocketContext } from '../models/websocket_state.tsx';
+import { useSetGameCode } from '../models/game_code_state.tsx';
+import { useSetPlayers } from '../models/players_state.tsx';
+import { useGameState, useSetGameState } from '../models/game_state.tsx';
+import { useSetError } from '../models/error_state.tsx';
+import { useWebsocket } from '../models/websocket_state.tsx';
+
 
 
 export function StartNewGameButton() {
-  const gameStateDispatch = useContext(GameStateDispatchContext);
-  const setError = useContext(ErrorDispatchContext);
-  const setGameCode = useContext(GameStateDispatchContext);
-  const setPlayers = useContext(PlayersDispatchContext);
   const playerId = useContext(PlayerIdContext);
-  const ws = useContext(WebSocketContext);
   const baseAddress = useContext(httpBaseAddress);
+  const gameState = useGameState();
+  const ws = useWebsocket();
+  const setGameState = useSetGameState();
+  const setError = useSetError()
+  const setGameCode = useSetGameCode();
+  const setPlayers = useSetPlayers();
+
 
   const createGame = async () => {
     try {
       console.log('Creating new game...');
-      gameStateDispatch('creating');
+      setGameState('creating');
       setError('');
+      console.log('Game state:', gameState);
 
       const response = await fetch(`${baseAddress}/api/games`, {
         method: 'POST',
@@ -35,8 +40,10 @@ export function StartNewGameButton() {
 
       const data = await response.json();
       console.log('Game created:', data);
+
       setGameCode(data.gameCode);
-      gameStateDispatch('waiting');
+      setGameState('waiting');
+
       setPlayers(new Set([playerId]));
 
       // Notify WebSocket server about the new game
@@ -50,7 +57,7 @@ export function StartNewGameButton() {
     } catch (error) {
       console.error('Error creating game:', error);
       setError('Failed to create game. Please try again.');
-      gameStateDispatch('initial');
+      setGameState('initial');
     }
   };
 

@@ -1,10 +1,27 @@
-import { createContext, useReducer } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 
 
 export function roundStateReducer(round: number, newRound: number) {
   return newRound;
 }
 
-export const RoundStateContext = createContext<number>(0)
+const RoundStateContext = createContext<number>(0)
 
-export const RoundStateDispatchContext = createContext<React.Dispatch<number>>(() => { })
+const RoundStateDispatchContext = createContext<React.Dispatch<number>>(() => { })
+
+export function useCurrentRound() {
+  return useContext(RoundStateContext)
+}
+
+export function useSetCurrentRound() {
+  return useContext(RoundStateDispatchContext)
+}
+
+
+export function CurrentRoundProvider() {
+  const [currentRound, setCurrentRound] = useReducer(roundStateReducer, 0);
+  return (<RoundStateContext.Provider key="round" value={currentRound}>
+    <RoundStateDispatchContext.Provider value={setCurrentRound} />
+  </RoundStateContext.Provider>);
+
+}

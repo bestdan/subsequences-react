@@ -1,20 +1,23 @@
-import { CurrentPlayerContext } from "../models/current_player_state.tsx";
-import { PlayersContext } from "../models/players_state.tsx";
-import { PreviousTextStateContext } from "../models/previous_text_state.tsx";
-import { RoundStateContext } from "../models/round_state.tsx";
-import { StoryContext, StoryDispatchContext } from "../models/story_state.tsx";
+
+
+import { useCurrentPlayer } from "../models/current_player_state.tsx";
+import { usePlayers } from "../models/players_state.tsx";
+import { usePreviousText } from "../models/previous_text_state.tsx";
+import { useCurrentRound } from "../models/round_state.tsx";
+import { useSetStory, useStory } from "../models/story_state.tsx";
+
 import { PlayerIdContext, TotalRoundsContext } from "./game_configs.tsx";
 import { ChangeEvent, useContext, useState } from "react";
 
 export function PlayingScreen() {
 
-    const players = useContext(PlayersContext);
-    const currentPlayer = useContext(CurrentPlayerContext);
-    const round = useContext(RoundStateContext);
+    const players = usePlayers();
+    const currentPlayer = useCurrentPlayer()
+    const round = useCurrentRound();
     const totalRounds = useContext(TotalRoundsContext);
-    const story = useContext(StoryContext);
-    const setStory = useContext(StoryDispatchContext);
-    const previousText = useContext(PreviousTextStateContext);
+    const story = useStory()
+    const setStory = useSetStory()
+    const previousText = usePreviousText();
 
     const [inputText, setInputText] = useState<string>('');
 

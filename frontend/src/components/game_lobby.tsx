@@ -1,16 +1,16 @@
 import React, { useContext } from 'react';
-import { GameCodeContext } from '../models/game_code_state.tsx';
-import { PlayersContext } from '../models/players_state.tsx';
-import { WebSocketContext } from '../models/websocket_state.tsx';
 import { PlayerIdContext } from './game_configs.tsx';
+import { useGameCode } from '../models/game_code_state.tsx';
+import { usePlayers } from '../models/players_state.tsx';
+import { useWebsocket } from '../models/websocket_state.tsx';
 
 
 
 export function GameLobby() {
-    const gameCode = useContext(GameCodeContext)
-    const players = useContext(PlayersContext)
+    const gameCode = useGameCode();
+    const players = usePlayers();
     const playerId = useContext(PlayerIdContext)
-    const ws = useContext(WebSocketContext)
+    const ws = useWebsocket()
 
     const handleStartGame = (): void => {
 

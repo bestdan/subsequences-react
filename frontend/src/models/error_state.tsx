@@ -1,9 +1,25 @@
-import { createContext } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 
-export function errorStateReducer(error: string | null, newError: string | null) {
+function errorStateReducer(error: string | null, newError: string | null) {
   return newError;
 }
 
-export const ErrorContext = createContext<string | null>('')
+const ErrorContext = createContext<string | null>('')
 
-export const ErrorDispatchContext = createContext<React.Dispatch<string | null>>(() => { })
+const ErrorDispatchContext = createContext<React.Dispatch<string | null>>(() => { })
+
+export function useError() {
+  return useContext(ErrorContext);
+}
+
+export function useSetError() {
+  return useContext(ErrorDispatchContext);
+}
+
+export function ErrorProvider() {
+  const [error, setError] = useReducer(errorStateReducer, null);
+  return (
+    <ErrorContext.Provider key="error" value={error}>
+      <ErrorDispatchContext.Provider value={setError} />
+    </ErrorContext.Provider>);
+}

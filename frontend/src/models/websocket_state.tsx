@@ -1,9 +1,24 @@
-import { createContext } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 
 export function websocketStateReducer(ws: WebSocket | null, setWs: WebSocket) {
   return ws;
 }
 
-export const WebSocketContext = createContext<WebSocket | null>(null)
+const WebSocketContext = createContext<WebSocket | null>(null)
 
-export const WebsocketDispatchContext = createContext<React.Dispatch<WebSocket>>(() => { })
+const WebsocketDispatchContext = createContext<React.Dispatch<WebSocket>>(() => { })
+
+export function useWebsocket() {
+  return useContext(WebSocketContext);
+}
+
+export function useSetWebsocket() {
+  return useContext(WebsocketDispatchContext);
+}
+
+export function WebSocketProvider() {
+  const [websocket, setWebsocket] = useReducer(websocketStateReducer, null);
+  return (<WebSocketContext.Provider key="websocket" value={websocket}>
+    <WebsocketDispatchContext.Provider value={setWebsocket} />
+  </WebSocketContext.Provider>);
+}
