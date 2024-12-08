@@ -20,8 +20,6 @@ const MultiProvider = ({ providers, children }: { providers: JSX.Element[], chil
 };
 
 export function Game() {
-    console.log('Game component mounted');
-
     return (
         <MultiProvider providers={[
             <GameStateProvider key="gameState">{null}</GameStateProvider>,

@@ -21,7 +21,7 @@ export function JoinGameInput() {
 
   async function joinGame() {
     try {
-      setGameCode(localGameCode)
+
       console.log('Joining game:', localGameCode);
       setGameState(GameStateFE.JOINING);
       setError('');
@@ -32,6 +32,7 @@ export function JoinGameInput() {
       }
 
       const data = await response.json();
+      setGameCode(localGameCode);
       console.log('Joined game:', data);
       setPlayers(new Set([...data.players, playerId]));
       setGameState(GameStateFE.WAITING);

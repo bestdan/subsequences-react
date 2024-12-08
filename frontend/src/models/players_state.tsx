@@ -23,8 +23,9 @@ export function PlayersProvider({ children }: { children: React.ReactNode }) {
   const [players, setPlayers] = useReducer(playersStateReducer, new Set([playerId]));
   return (
     <PlayersContext.Provider key="players" value={players}>
-      <PlayersDispatchContext.Provider value={setPlayers} />
-      {children}
+      <PlayersDispatchContext.Provider value={setPlayers} >
+        {children}
+      </PlayersDispatchContext.Provider>
     </PlayersContext.Provider>);
 
 }

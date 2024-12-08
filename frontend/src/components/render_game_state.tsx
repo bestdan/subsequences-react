@@ -38,7 +38,6 @@ export function RenderGameState() {
   const setCurrentRound = useSetCurrentRound();
 
 
-
   // WebSocket connection setup
   useEffect(() => {
     if (gameState === 'waiting' || gameState === 'playing') {
