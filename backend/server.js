@@ -227,8 +227,9 @@ function handleStartGame(ws, data) {
     const playersArray = Array.from(game.players);
     const firstPlayer = playersArray[Math.floor(Math.random() * playersArray.length)];
     
-    // Calculate total rounds (3 * number of players)
-    const totalRounds = playersArray.length * 3;
+    // Calculate total rounds 
+    const rounds_per_player = 1; //TODO(change to 3)
+    const totalRounds = playersArray.length * rounds_per_player;
 
     // Update game state
     game.state = {
@@ -275,7 +276,7 @@ function handleSubmitText(ws, data) {
 
     // Add current player's text to the story
     game.state.story.push({
-        player: game.state.currentPlayer,
+        playerId: game.state.currentPlayer,
         text: text
     });
 
