@@ -21,10 +21,10 @@ export function PlayingScreen() {
 
     const [inputText, setInputText] = useState<string>('');
 
-    let pid = useContext(PlayerIdContext)
+    const playerId = useContext(PlayerIdContext)
 
     return (
-        <div className="game-lobby">
+        <div className="game-in-progress">
             <h2>Game in Progress</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 {Array.from(players).map(player => (
@@ -36,7 +36,7 @@ export function PlayingScreen() {
                             backgroundColor: player === currentPlayer ? '#e6ffe6' : 'transparent'
                         }}
                     >
-                        {player === pid ? 'You' : player}
+                        {player === playerId ? 'You' : player}
                         {player === currentPlayer && ' (Playing)'}
                     </div>
                 ))}
@@ -44,15 +44,10 @@ export function PlayingScreen() {
 
             <p>Round {round} of {totalRounds}</p>
 
-            {currentPlayer === pid ? (
+            {currentPlayer === playerId ? (
                 <div>
                     <h3>Your Turn! (Round {round})</h3>
-                    {previousText && (
-                        <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
-                            <p>Previous text by {story[story.length - 1].playerId === pid ? 'you' : story[story.length - 1].playerId}:</p>
-                            <p>{previousText}</p>
-                        </div>
-                    )}
+                    <PreviousTextSection />
                     <p>Continue the story (up to 255 characters):</p>
                     <textarea
                         value={String(inputText)}
@@ -65,17 +60,38 @@ export function PlayingScreen() {
                     <p>{255 - inputText.length} characters remaining</p>
                     <button
                         onClick={() => setStory}
-                        disabled={inputText[0].length === 0}
+                        disabled={inputText.length === 0}
                     >
                         Submit
                     </button>
                 </div>
             ) : (
                 <div>
-                    <h3>Waiting for {currentPlayer === pid ? 'you' : currentPlayer} to play... (Round {round})</h3>
+                    <h3>Waiting for {currentPlayer === playerId ? 'you' : currentPlayer} to play... (Round {round})</h3>
                 </div>
             )}
         </div>
     );
 
 }
+
+export function PreviousTextSection() {
+    const story = useStory();
+    const playerId = useContext(PlayerIdContext);
+
+    if (story.length === 0) return null;
+
+    const previousText = story[story.length - 1].text
+    const previousPlayer = story[story.length - 1].playerId
+
+    return (
+
+        <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#e6f2ff' }}>
+            <p>Previous text by {previousPlayer === playerId ? 'you' : previousPlayer}:</p>
+            <p>{previousText}</p>
+        </div>
+
+    );
+
+}
+
