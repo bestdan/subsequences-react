@@ -1,31 +1,24 @@
-import { playerId } from "./game_configs";
-import { StoryEntry } from "./game_story";
-import { ChangeEvent, useContext } from "react";
+import { CurrentPlayerContext } from "../models/current_player_state.tsx";
+import { PlayersContext } from "../models/players_state.tsx";
+import { PreviousTextStateContext } from "../models/previous_text_state.tsx";
+import { RoundStateContext } from "../models/round_state.tsx";
+import { StoryContext, StoryDispatchContext } from "../models/story_state.tsx";
+import { PlayerIdContext, TotalRoundsContext } from "./game_configs.tsx";
+import { ChangeEvent, useContext, useState } from "react";
 
-export function PlayingScreen(props: {
-    players: Set<string>,
-    currentPlayer: string,
-    round: number,
-    totalRounds: number,
-    inputText: string,
-    setInputText: (text: string) => void,
-    story: StoryEntry[],
-    previousText: string,
-    handleSubmitText: () => void
-}) {
-    const {
-        players,
-        currentPlayer,
-        round,
-        totalRounds,
-        inputText,
-        setInputText,
-        story,
-        previousText,
-        handleSubmitText
-    } = props;
+export function PlayingScreen() {
 
-    let pid = useContext(playerId)
+    const players = useContext(PlayersContext);
+    const currentPlayer = useContext(CurrentPlayerContext);
+    const round = useContext(RoundStateContext);
+    const totalRounds = useContext(TotalRoundsContext);
+    const story = useContext(StoryContext);
+    const setStory = useContext(StoryDispatchContext);
+    const previousText = useContext(PreviousTextStateContext);
+
+    const [inputText, setInputText] = useState<string>('');
+
+    let pid = useContext(PlayerIdContext)
 
     return (
         <div className="game-lobby">
@@ -68,8 +61,8 @@ export function PlayingScreen(props: {
                     />
                     <p>{255 - inputText.length} characters remaining</p>
                     <button
-                        onClick={handleSubmitText}
-                        disabled={inputText.length === 0}
+                        onClick={() => setStory}
+                        disabled={inputText[0].length === 0}
                     >
                         Submit
                     </button>

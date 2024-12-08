@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import { GameStoryFinalData, StoryEntry } from './game_story.tsx';
+import { StoryContext } from '../models/story_state.tsx';
+import { PlayerIdContext } from './game_configs.tsx';
 
-export function GameStoryFinal({ storyEntries, playerId }: GameStoryFinalData) {
+
+export function GameStoryFinal() {
+    const story = useContext(StoryContext);
+    const playerId = useContext(PlayerIdContext);
 
     return (
         <div>
@@ -14,20 +19,22 @@ export function GameStoryFinal({ storyEntries, playerId }: GameStoryFinalData) {
                 whiteSpace: 'pre-wrap'
             }}>
 
-                {StoryBody({ storyEntries, playerId })}
+                {StoryBody()}
 
             </div>
         </div>
     );
 }
 
-export function StoryBody({ storyEntries, playerId }: GameStoryFinalData) {
-    if (!storyEntries) return (<p>Loading...</p>)
+export function StoryBody() {
+    let story = useContext(StoryContext);
+    const playerId = useContext(PlayerIdContext);
+    if (!story) return (<p>Loading...</p>)
 
-    if (storyEntries.length === 0) return (<p>No story entries found.</p>)
+    if (story.length === 0) return (<p>No story entries found.</p>)
 
-    return (storyEntries?.map((entry, index) => (
-        StoryEntryRow({ entry, index, playerId })
+    return (story?.map((entry, index) => (
+        StoryEntryRow({ entry, index, playerId: playerId })
     )));
 }
 

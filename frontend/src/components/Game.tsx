@@ -1,40 +1,51 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { GameStoryFinal } from './game_final.tsx';
-import { StoryEntry } from './game_story.tsx';
-import { GameLobby } from './game_lobby.tsx';
-import { LandingMenu } from './landing_menu.tsx';
-import { PlayingScreen } from './playing_screen.tsx';
-import { createGame } from '../methods/create_game.tsx';
-import { joinGame } from '../methods/join_game.tsx';
-import { playerId, wsAddress, httpBaseAddress } from './game_configs.tsx'
+import React, { Provider, useReducer, useContext, useState, useEffect, useRef } from 'react';
+import { wsAddress, httpBaseAddress, PlayerIdContext } from './game_configs.tsx'
+import { GameStateContext, GameStateDispatchContext, gameStateReducer } from '../models/game_state.tsx'
+import { ErrorContext, ErrorDispatchContext, errorStateReducer } from '../models/error_state.tsx';
+import { GameCodeContext, GameCodeDispatchContext, gameCodeStateReducer } from '../models/game_code_state.tsx';
+import { PlayersContext, PlayersDispatchContext, playersStateReducer } from '../models/players_state.tsx';
+import { WebSocketContext, WebsocketDispatchContext, websocketStateReducer } from '../models/websocket_state.tsx';
+import { renderGameState } from './render_game_state.tsx';
+import { StoryContext, StoryDispatchContext, storyStateReducer } from '../models/story_state.tsx';
+import { CurrentPlayerContext, CurrentPlayerDispatchContext, currentPlayerStateReducer } from '../models/current_player_state.tsx';
+import { RoundStateContext, RoundStateDispatchContext } from '../models/round_state.tsx';
+import { PreviousTextStateContext, PreviousTextStateDispatchContext, previousTextStateReducer } from '../models/previous_text_state.tsx';
 
-type GameState = "initial" | "creating" | "joining" | "waiting" | "playing"
 type GamePhase = "waiting" | "playing"
+
+
+const MultiProvider = ({ providers, children }: { providers: JSX.Element[], children: React.ReactNode }) => {
+    return providers.reduceRight(
+        (children, provider) => React.cloneElement(provider, {}, children),
+        children
+    );
+};
 
 const Game = () => {
     console.log('Game component mounted');
+    let playerId = useContext(PlayerIdContext);
 
-    const [gameState, setGameState] = useState<string>('initial');
-    const [gameCode, setGameCode] = useState<string>('');
-    const [players, setPlayers] = useState<Set<string>>(new Set());
-    const [error, setError] = useState<string>('');
-    const [isHost, setIsHost] = useState(false);
-    const [currentPlayer, setCurrentPlayer] = useState<string>('');
-    const [inputText, setInputText] = useState<string>('');
+    const [gameState, setGameState] = useReducer(gameStateReducer, 'initial');
+    const [error, setError] = useReducer(errorStateReducer, null);
+    const [gameCode, setGameCode] = useReducer(gameCodeStateReducer, null);
+    const [players, setPlayers] = useReducer(playersStateReducer, new Set(playerId));
+    const [websocket, setWebsocket] = useReducer(websocketStateReducer, null);
+    const [story, setStory] = useReducer(storyStateReducer, []);
+    const [previousText, setPreviousText] = useReducer(previousTextStateReducer, '');
+
+    const [currentPlayer, setCurrentPlayer] = useReducer(currentPlayerStateReducer, 'none');
     const [gamePhase, setGamePhase] = useState<GamePhase>('waiting'); // waiting, playing
-    const [story, setStory] = useState<StoryEntry[]>([]);
-    const [previousText, setPreviousText] = useState<string>('');
+
+    //const [previousText, setPreviousText] = useState<string>('');
     const [round, setRound] = useState(1);
     const [totalRounds, setTotalRounds] = useState(0);
-    const [isGameOver, setIsGameOver] = useState(false);
-    const wsRef = useRef<WebSocket | null>(null);
 
 
     // WebSocket connection setup
     useEffect(() => {
         if (gameState === 'waiting' || gameState === 'playing') {
             const ws = new WebSocket(useContext(wsAddress));
-            wsRef.current = ws;
+            setWebsocket(ws);
 
             ws.onopen = () => {
                 console.log('WebSocket connected');
@@ -87,20 +98,20 @@ const Game = () => {
                             setRound(message.data.round);
 
                             // Clear input text
-                            setInputText('');
+                            //setInputText(''); //TODO(dan): NEED? 
                         }
                         break;
                     case 'game_over':
                         console.log('Game over received:', message.data);
                         if (message.data.gameCode === gameCode) {
-                            setIsGameOver(true);
+                            setGameState('over');
                             setStory(message.data.story);
                             setRound(message.data.round);
                         }
                         break;
                     case 'text_submitted':
                         console.log('Text submitted:', message.data);
-                        setInputText('');
+                        //setInputText(''); TODO(dan): need? 
                         break;
                     case 'error':
                         console.error('Received error:', message.data.message);
@@ -108,15 +119,14 @@ const Game = () => {
                         break;
                     case 'playerJoined':
                         // Update players list when a new player joins
-                        setPlayers(prevPlayers => new Set([...prevPlayers, message.playerId]));
+                        let newPlayers = new Set([...players, message.playerId]);
+                        setPlayers(newPlayers);
                         break;
                     case 'playerLeft':
                         // Remove player when they leave
-                        setPlayers(prevPlayers => {
-                            const newPlayers = new Set(prevPlayers);
-                            newPlayers.delete(message.playerId);
-                            return newPlayers;
-                        });
+                        let newPlayers2 = new Set(players);
+                        newPlayers2.delete(message.playerId);
+                        setPlayers(newPlayers2);
                         break;
                     default:
                         console.log('Unknown message type:', message.type);
@@ -142,90 +152,63 @@ const Game = () => {
 
 
 
-    const handleStartGame = (gameCode: string) => {
-        console.log('Start game clicked', {
-            gameCode,
-            isHost,
-            players: Array.from(players)
-        });
-
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({
-                type: 'start_game',
-                data: { gameCode }
-            }));
-        } else {
-            console.error('WebSocket is not open');
-        }
-    };
-
-    const handleSubmitText = () => {
-        console.log('Submitting text:', {
-            gameCode,
-            playerId,
-            currentPlayer,
-            inputText
-        });
-
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({
-                type: 'submit_text',
-                data: {
-                    gameCode,
-                    text: inputText
-                }
-            }));
-
-            // Clear input text immediately
-            setInputText('');
-        }
-    };
-
-    const renderGameState = () => {
-        if (isGameOver) {
-            return <GameStoryFinal storyEntries={story} playerId={useContext(playerId)} />
-        }
-
-        switch (gameState) {
-
-            case 'initial':
-
-                let joinProps = { gameCode, wsRef, setGameState, setError, setGameCode, setPlayers }
-                let createProps = { playerId, wsRef, setGameState, setError, setGameCode, setIsHost, setPlayers }
-                return <LandingMenu joinGame={() => joinGame(joinProps)} createGame={() => createGame(createProps)} />
-            case 'creating':
-            case 'joining':
-                return (
-                    <div className="game-menu">
-                        <h2>{gameState === 'creating' ? 'Creating Game...' : 'Joining Game...'}</h2>
-                    </div>
-                );
-
-            case 'waiting':
-                return <GameLobby handleStartGame={handleStartGame} gameCode={gameCode} players={players} isHost={isHost} />
-
-            case 'playing':
-                return <PlayingScreen
-                    players={players}
-                    currentPlayer={currentPlayer}
-                    previousText={previousText}
-                    story={story}
-                    round={round}
-                    totalRounds={totalRounds}
-                    inputText={inputText}
-                    setInputText={setInputText}
-                    handleSubmitText={handleSubmitText}
-                />
-            default:
-                return null;
-        }
-    };
-
     return (
-        <div className="game-container">
-            {error && <div className="error-message">{error}</div>}
-            {renderGameState()}
-        </div>
+        <MultiProvider providers={[
+            <GameStateContext.Provider value={gameState}>
+                <GameStateDispatchContext.Provider value={setGameState}>
+                </GameStateDispatchContext.Provider>
+            </GameStateContext.Provider>,
+
+            <GameCodeContext.Provider value={gameCode}>
+                <GameCodeDispatchContext.Provider value={setGameCode}>
+                </GameCodeDispatchContext.Provider>
+            </GameCodeContext.Provider>,
+
+            <GameCodeContext.Provider value={gameCode}>
+                <GameCodeDispatchContext.Provider value={setGameCode}>
+                </GameCodeDispatchContext.Provider>
+            </GameCodeContext.Provider>,
+
+            <PlayersContext.Provider value={players}>
+                <PlayersDispatchContext.Provider value={setPlayers}>
+                </PlayersDispatchContext.Provider>
+            </PlayersContext.Provider>,
+
+            <ErrorContext.Provider value={error}>
+                <ErrorDispatchContext.Provider value={setError}>
+                </ErrorDispatchContext.Provider>
+            </ErrorContext.Provider>,
+
+            <WebSocketContext.Provider value={websocket}>
+                <WebsocketDispatchContext.Provider value={setWebsocket}>
+                </WebsocketDispatchContext.Provider>
+            </WebSocketContext.Provider>,
+
+            <StoryContext.Provider value={story}>
+                <StoryDispatchContext.Provider value={setStory}>
+                </StoryDispatchContext.Provider>
+            </StoryContext.Provider>,
+
+            <CurrentPlayerContext.Provider value={currentPlayer}>
+                <CurrentPlayerDispatchContext.Provider value={setCurrentPlayer}>
+                </CurrentPlayerDispatchContext.Provider>
+            </CurrentPlayerContext.Provider>,
+
+            <RoundStateContext.Provider value={round}>
+                <RoundStateDispatchContext.Provider value={setRound}>
+                </RoundStateDispatchContext.Provider>
+            </RoundStateContext.Provider>,
+            <PreviousTextStateContext.Provider value={previousText}>
+                <PreviousTextStateDispatchContext.Provider value={setPreviousText}>
+                </PreviousTextStateDispatchContext.Provider>
+            </PreviousTextStateContext.Provider>
+        ]}>
+
+            <div className="game-container">
+                {error && <div className="error-message">{error}</div>}
+                {renderGameState()}
+            </div>
+        </MultiProvider >
     );
 };
 

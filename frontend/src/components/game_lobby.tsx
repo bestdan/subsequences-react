@@ -1,16 +1,37 @@
 import React, { useContext } from 'react';
-import { playerId } from './game_configs.tsx';
+import { GameCodeContext } from '../models/game_code_state.tsx';
+import { PlayersContext } from '../models/players_state.tsx';
+import { WebSocketContext } from '../models/websocket_state.tsx';
+import { PlayerIdContext } from './game_configs.tsx';
 
-export function GameLobby(props: {
-    gameCode: string,
-    players: Set<string>,
-    isHost: boolean,
-    handleStartGame: (gameCode: string) => void
-}) {
-    const { handleStartGame, gameCode, players, isHost
-    } = props;
-    console.log('GameLobby props:', props);
-    let pid = useContext(playerId)
+
+
+export function GameLobby() {
+    const gameCode = useContext(GameCodeContext)
+    const players = useContext(PlayersContext)
+    const playerId = useContext(PlayerIdContext)
+    const ws = useContext(WebSocketContext)
+
+    const handleStartGame = (): void => {
+
+
+        console.log('Start game clicked', {
+            gameCode,
+            players: Array.from(players)
+        });
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'start_game',
+                data: { gameCode }
+            }));
+        } else {
+            console.error('WebSocket is not open');
+        }
+    };
+
+
+    if (!players) return <p>Loading</p>
 
     return (
         <div className="game-lobby">
@@ -23,14 +44,13 @@ export function GameLobby(props: {
                 <ul>
                     {Array.from(players).map(id => (
                         <li>
-                            {id === pid ? `${id} (You)` : id}
-                            {isHost && id === pid && ' (Host)'}
+                            {id === playerId ? `${id} (You)` : id}
                         </li>
                     ))}
                 </ul>
             </div>
-            {isHost && players.size >= 2 && (
-                <button onClick={(event) => handleStartGame(gameCode)}>Start Game</button>
+            {players.size >= 2 && (
+                <button onClick={(event) => handleStartGame()}>Start Game</button>
             )}
         </div>
     );
