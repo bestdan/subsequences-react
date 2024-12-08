@@ -1,4 +1,4 @@
-run = "sh replit_start.sh"
+run = "sh replit_build.sh"
 modules = ["nodejs-18:v18-20230807-322e88b"]
 
 [nix]
@@ -7,6 +7,8 @@ channel = "stable-24_05"
 [env]
 BROWSER = "none"
 PORT = "3000"
+BACKEND_PORT = "3001"
+REACT_APP_BASE_URL = "subsequences.replit.app"
 
 [[ports]]
 localPort = 3000
@@ -17,8 +19,8 @@ localPort = 3001
 externalPort = 80
 
 [deployment]
-run = ["sh", "-c", "sh replit_start.sh"]
-deploymentTarget = "static"
+run = ["sh", "-c", "sh replit_build.sh"]
+deploymentTarget = "cloudrun"
 
 [languages.javascript]
 pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"

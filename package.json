@@ -14,5 +14,9 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-private-property-in-object": "^7.25.9",
+    "@types/node": "^22.10.1"
   }
 }

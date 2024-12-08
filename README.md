@@ -16,6 +16,14 @@ First, run the development server:
 node backend/server.js
 npm start
 ```
+#!/bin/bash
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+( cd backend && npm install && PORT=$BACKEND_PORT node server.js & ) || { echo "Failed to start backend"; exit 1; }
 
+(cd frontend && npm install && npm start) || { echo "Failed to start frontend"; exit 1; }
+
+#!/bin/bash
+
+( cd backend && npm install && PORT=$BACKEND_PORT node server.js & ) || { echo "Failed to start backend"; exit 1; }
+
+(cd frontend && npm install && npm run build) || { echo "Failed to start frontend"; exit 1; }
