@@ -1,10 +1,7 @@
-
-
-import { useCurrentPlayer, useSetCurrentPlayer } from "../models/current_player_state.tsx";
+import { useCurrentPlayer } from "../models/current_player_state.tsx";
 import { usePlayers } from "../models/players_state.tsx";
 import { useCurrentRound } from "../models/round_state.tsx";
-import { useSetStory, useStory } from "../models/story_state.tsx";
-import { MakeStoryEntry } from "./game_story.tsx";
+import { useStory } from "../models/story_state.tsx";
 
 import { PlayerIdContext, TotalRoundsContext } from "./game_configs.tsx";
 import { ChangeEvent, useContext, useState } from "react";
@@ -19,8 +16,6 @@ export function PlayingScreen() {
     const currentPlayer = useCurrentPlayer()
     const round = useCurrentRound();
     const totalRounds = useContext(TotalRoundsContext);
-    const story = useStory()
-    const setStory = useSetStory()
 
     const [inputText, setInputText] = useState<string>('');
 

@@ -1,13 +1,11 @@
 import React, { useContext } from 'react';
 
-import { GameStoryFinalData, StoryEntry } from './game_story.tsx';
+import { StoryEntry } from './game_story.tsx';
 import { StoryContext } from '../models/story_state.tsx';
 import { PlayerIdContext } from './game_configs.tsx';
 
 
 export function GameStoryFinal() {
-    const story = useContext(StoryContext);
-    const playerId = useContext(PlayerIdContext);
 
     return (
         <div>
