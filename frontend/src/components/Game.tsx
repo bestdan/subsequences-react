@@ -1,6 +1,3 @@
-import React, { useContext, useState } from 'react';
-import { PlayerIdContext } from './game_configs.tsx'
-
 import { RenderGameState } from './render_game_state.tsx';
 import { GameCodeProvider } from '../models/game_code_state.tsx';
 import { PlayersProvider } from '../models/players_state.tsx';
@@ -11,31 +8,37 @@ import { GameStateProvider } from '../models/game_state.tsx';
 import { PreviousTextProvider } from '../models/previous_text_state.tsx';
 import { StoryProvider } from '../models/story_state.tsx';
 import { CurrentRoundProvider } from '../models/round_state.tsx';
+import React from 'react';
 
 const MultiProvider = ({ providers, children }: { providers: JSX.Element[], children: React.ReactNode }) => {
-    return providers.reduceRight(
-        (children, provider) => React.cloneElement(provider, {}, children),
+    console.log('MultiProvider rendered with children:', children);
+
+    const result = providers.reduceRight(
+        (accChildren, provider) => React.cloneElement(provider, {}, accChildren),
         children
     );
+
+    console.log('MultiProvider final result:', result);
+    return result;
 };
 
-const Game: React.FC = () => {
+export function Game() {
     console.log('Game component mounted');
-
 
     return (
         <MultiProvider providers={[
-            <GameStateProvider key="gameState" />,
-            <GameCodeProvider key="gameCode" />,
-            <PlayersProvider key="players" />,
-            <ErrorProvider key="error" />,
-            <WebSocketProvider key="websocket" />,
-            <StoryProvider key="story" />,
-            <CurrentPlayerProvider key="currentPlayer" />,
-            <PreviousTextProvider key="previousText" />,
-            <CurrentRoundProvider key="currentRound" />,
+            <GameStateProvider key="gameState">{null}</GameStateProvider>,
+            <GameCodeProvider key="gameCode">{null}</GameCodeProvider>,
+            <PlayersProvider key="players">{null}</PlayersProvider>,
+            <ErrorProvider key="error" >{null}</ErrorProvider>,
+            <WebSocketProvider key="websocket">{null}</WebSocketProvider>,
+            <StoryProvider key="story" >{null}</StoryProvider>,
+            <CurrentPlayerProvider key="currentPlayer" >{null}</CurrentPlayerProvider>,
+            <PreviousTextProvider key="previousText" >{null}</PreviousTextProvider>,
+            <CurrentRoundProvider key="currentRound" >{null}</CurrentRoundProvider>
         ]}>
             <div className="game-container">
+                <p>hi</p>
                 <RenderGameState />
             </div>
         </MultiProvider>

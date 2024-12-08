@@ -16,9 +16,10 @@ export function useSetWebsocket() {
   return useContext(WebsocketDispatchContext);
 }
 
-export function WebSocketProvider() {
+export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [websocket, setWebsocket] = useReducer(websocketStateReducer, null);
   return (<WebSocketContext.Provider key="websocket" value={websocket}>
     <WebsocketDispatchContext.Provider value={setWebsocket} />
+    {children}
   </WebSocketContext.Provider>);
 }

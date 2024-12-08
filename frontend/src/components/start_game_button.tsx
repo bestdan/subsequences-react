@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { httpBaseAddress, PlayerIdContext } from './game_configs.tsx';
 import { useSetGameCode } from '../models/game_code_state.tsx';
 import { useSetPlayers } from '../models/players_state.tsx';
-import { useGameState, useSetGameState } from '../models/game_state.tsx';
+import { GameStateFE, useGameState, useSetGameState } from '../models/game_state.tsx';
 import { useSetError } from '../models/error_state.tsx';
 import { useWebsocket } from '../models/websocket_state.tsx';
 
@@ -22,7 +22,7 @@ export function StartNewGameButton() {
   const createGame = async () => {
     try {
       console.log('Creating new game...');
-      setGameState('creating');
+      setGameState(GameStateFE.CREATING);
       setError('');
       console.log('Game state:', gameState);
 
@@ -42,7 +42,7 @@ export function StartNewGameButton() {
       console.log('Game created:', data);
 
       setGameCode(data.gameCode);
-      setGameState('waiting');
+      setGameState(GameStateFE.WAITING);
 
       setPlayers(new Set([playerId]));
 
@@ -57,7 +57,7 @@ export function StartNewGameButton() {
     } catch (error) {
       console.error('Error creating game:', error);
       setError('Failed to create game. Please try again.');
-      setGameState('initial');
+      setGameState(GameStateFE.INITIAL);
     }
   };
 

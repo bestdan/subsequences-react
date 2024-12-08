@@ -18,10 +18,11 @@ export function useSetCurrentRound() {
 }
 
 
-export function CurrentRoundProvider() {
+export function CurrentRoundProvider({ children }: { children: React.ReactNode }) {
   const [currentRound, setCurrentRound] = useReducer(roundStateReducer, 0);
   return (<RoundStateContext.Provider key="round" value={currentRound}>
     <RoundStateDispatchContext.Provider value={setCurrentRound} />
+    {children}
   </RoundStateContext.Provider>);
 
 }

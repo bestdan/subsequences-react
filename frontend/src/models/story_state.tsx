@@ -17,9 +17,10 @@ export function useSetStory() {
   return useContext(StoryDispatchContext)
 }
 
-export function StoryProvider() {
+export function StoryProvider({ children }: { children: React.ReactNode }) {
   const [story, setStory] = useReducer(storyStateReducer, []);
   return (<StoryContext.Provider key="story" value={story}>
     <StoryDispatchContext.Provider value={setStory} />
+    {children}
   </StoryContext.Provider>);
 }

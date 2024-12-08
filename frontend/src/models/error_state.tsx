@@ -16,10 +16,11 @@ export function useSetError() {
   return useContext(ErrorDispatchContext);
 }
 
-export function ErrorProvider() {
+export function ErrorProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useReducer(errorStateReducer, null);
   return (
     <ErrorContext.Provider key="error" value={error}>
       <ErrorDispatchContext.Provider value={setError} />
+      {children}
     </ErrorContext.Provider>);
 }

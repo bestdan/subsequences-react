@@ -4,8 +4,6 @@ import { useGameCode } from '../models/game_code_state.tsx';
 import { usePlayers } from '../models/players_state.tsx';
 import { useWebsocket } from '../models/websocket_state.tsx';
 
-
-
 export function GameLobby() {
     const gameCode = useGameCode();
     const players = usePlayers();

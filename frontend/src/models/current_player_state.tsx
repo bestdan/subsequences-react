@@ -17,9 +17,10 @@ export function useSetCurrentPlayer() {
   return useContext(CurrentPlayerDispatchContext)
 }
 
-export function CurrentPlayerProvider() {
+export function CurrentPlayerProvider({ children }: { children: React.ReactNode }) {
   const [currentPlayer, setCurrentPlayer] = useReducer(currentPlayerStateReducer, 'none');
   return (<CurrentPlayerContext.Provider key="currentPlayer" value={currentPlayer}>
     <CurrentPlayerDispatchContext.Provider value={setCurrentPlayer} />
+    {children}
   </CurrentPlayerContext.Provider>);
 }

@@ -1,15 +1,22 @@
 import { createContext, useContext, useReducer } from 'react';
 
-export type GameState = "initial" | "creating" | "joining" | "waiting" | "playing" | "over"
+export enum GameStateFE {
+  INITIAL = "initial",
+  CREATING = "creating",
+  JOINING = "joining",
+  WAITING = "waiting",
+  PLAYING = "playing",
+  OVER = "over"
+}
 
-export function gameStateReducer(gameState: GameState, newState: GameState) {
+export function gameStateReducer(gameState: GameStateFE, newState: GameStateFE) {
   console.log("new state:" + newState);
   return newState;
 }
 
-const GameStateContext = createContext<GameState>('initial')
+const GameStateContext = createContext<GameStateFE>(GameStateFE.INITIAL)
 
-const GameStateDispatchContext = createContext<React.Dispatch<GameState>>(() => { })
+const GameStateDispatchContext = createContext<React.Dispatch<GameStateFE>>(() => { })
 
 export function useGameState() {
   return useContext(GameStateContext);
@@ -19,11 +26,12 @@ export function useSetGameState() {
   return useContext(GameStateDispatchContext);
 }
 
-export function GameStateProvider() {
-  const [gameState, setGameState] = useReducer(gameStateReducer, 'initial');
+export function GameStateProvider({ children }: { children: React.ReactNode }) {
+  const [gameState, setGameState] = useReducer(gameStateReducer, GameStateFE.INITIAL);
   return (
     <GameStateContext.Provider value={gameState}>
       <GameStateDispatchContext.Provider value={setGameState}>
+        {children}
       </GameStateDispatchContext.Provider>
     </GameStateContext.Provider>
   );

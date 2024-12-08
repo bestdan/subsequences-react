@@ -17,11 +17,12 @@ export function useSetGameCode() {
 }
 
 
-export function GameCodeProvider() {
+export function GameCodeProvider({ children }: { children: React.ReactNode }) {
   const [gameCode, setGameCode] = useReducer(gameCodeStateReducer, null);
 
   return (<GameCodeContext.Provider key="gameCode" value={gameCode}>
     <GameCodeDispatchContext.Provider value={setGameCode} />
+    {children}
   </GameCodeContext.Provider>);
 
 }

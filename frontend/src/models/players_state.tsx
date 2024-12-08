@@ -17,12 +17,13 @@ export function useSetPlayers() {
   return useContext(PlayersDispatchContext);
 }
 
-export function PlayersProvider() {
+export function PlayersProvider({ children }: { children: React.ReactNode }) {
   const playerId = useContext(PlayerIdContext);
   const [players, setPlayers] = useReducer(playersStateReducer, new Set(playerId));
   return (
     <PlayersContext.Provider key="players" value={players}>
       <PlayersDispatchContext.Provider value={setPlayers} />
+      {children}
     </PlayersContext.Provider>);
 
 }

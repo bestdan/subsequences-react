@@ -4,7 +4,7 @@ import { LandingMenu } from "./landing_menu.tsx";
 import { GameLobby } from "./game_lobby.tsx";
 
 import { PlayingScreen } from "./playing_screen.tsx";
-import { useGameState, useSetGameState } from "../models/game_state.tsx";
+import { GameStateFE, useGameState, useSetGameState } from "../models/game_state.tsx";
 import { PlayerIdContext, wsAddress } from "./game_configs.tsx";
 import { useGameCode } from "../models/game_code_state.tsx";
 import { useError, useSetError } from "../models/error_state.tsx";
@@ -17,7 +17,8 @@ import { useSetStory } from "../models/story_state.tsx";
 import { useSetCurrentRound } from "../models/round_state.tsx";
 import { useSetTotalRounds } from "../models/total_rounds_state.tsx";
 
-export function RenderGameState(): JSX.Element {
+export function RenderGameState() {
+
   const playerId = useContext(PlayerIdContext);
   const wsAddressValue = useContext(wsAddress);
   const gameState = useGameState();
@@ -35,6 +36,8 @@ export function RenderGameState(): JSX.Element {
   const setCurrentPhase = useSetCurrentPhase();
   const setTotalRounds = useSetTotalRounds();
   const setCurrentRound = useSetCurrentRound();
+
+
 
   // WebSocket connection setup
   useEffect(() => {
@@ -70,7 +73,7 @@ export function RenderGameState(): JSX.Element {
             console.log('Game started:', message.data);
             // Only update if the game code matches
             if (message.data.gameCode === gameCode) {
-              setGameState('playing');
+              setGameState(GameStateFE.PLAYING);
               setCurrentPhase(GamePhase.Playing);
               setCurrentPlayer(message.data.currentPlayer);
               setPlayers(new Set(message.data.players));
@@ -99,7 +102,7 @@ export function RenderGameState(): JSX.Element {
           case 'game_over':
             console.log('Game over received:', message.data);
             if (message.data.gameCode === gameCode) {
-              setGameState('over');
+              setGameState(GameStateFE.OVER);
               setStory(message.data.story);
               setCurrentRound(message.data.round);
             }
