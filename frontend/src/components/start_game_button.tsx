@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import { httpBaseAddress, PlayerIdContext } from './game_configs.tsx';
 import { useSetGameCode } from '../models/game_code_state.tsx';
-import { useSetPlayers } from '../models/players_state.tsx';
 import { GameStateFE, useGameState, useSetGameState } from '../models/game_state.tsx';
 import { useSetError } from '../models/error_state.tsx';
 import { useWebsocket } from '../models/websocket_state.tsx';
@@ -16,8 +15,6 @@ export function StartNewGameButton() {
   const setGameState = useSetGameState();
   const setError = useSetError()
   const setGameCode = useSetGameCode();
-  const setPlayers = useSetPlayers();
-
 
   const createGame = async () => {
     try {
@@ -44,7 +41,6 @@ export function StartNewGameButton() {
 
       setGameCode(data.gameCode);
       setGameState(GameStateFE.WAITING);
-
 
       // Notify WebSocket server about the new game
       if (ws?.readyState === WebSocket.OPEN) {

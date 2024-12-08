@@ -26,7 +26,7 @@ export function Game() {
             <GameCodeProvider key="gameCode">{null}</GameCodeProvider>,
             <PlayersProvider key="players">{null}</PlayersProvider>,
             <ErrorProvider key="error" >{null}</ErrorProvider>,
-            <WebSocketProvider key="websocket">{null}</WebSocketProvider>,
+            <WebSocketProvider>{null}</WebSocketProvider>,
             <StoryProvider key="story" >{null}</StoryProvider>,
             <CurrentPlayerProvider key="currentPlayer" >{null}</CurrentPlayerProvider>,
             <PreviousTextProvider key="previousText" >{null}</PreviousTextProvider>,

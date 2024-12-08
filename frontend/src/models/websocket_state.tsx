@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer } from 'react';
 
-export function websocketStateReducer(ws: WebSocket | null, setWs: WebSocket) {
-  return ws;
+export function websocketStateReducer(ws: WebSocket | null, setWs: WebSocket | null) {
+  return setWs;
 }
 
 const WebSocketContext = createContext<WebSocket | null>(null)
@@ -19,7 +19,8 @@ export function useSetWebsocket() {
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const [websocket, setWebsocket] = useReducer(websocketStateReducer, null);
   return (<WebSocketContext.Provider key="websocket" value={websocket}>
-    <WebsocketDispatchContext.Provider value={setWebsocket} />
-    {children}
+    <WebsocketDispatchContext.Provider value={setWebsocket} >
+      {children}
+    </WebsocketDispatchContext.Provider>
   </WebSocketContext.Provider>);
 }

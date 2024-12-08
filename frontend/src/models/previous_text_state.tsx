@@ -21,8 +21,9 @@ export function useSetPreviousText() {
 export function PreviousTextProvider({ children }: { children: React.ReactNode }) {
   const [previousText, setPreviousText] = useReducer(previousTextStateReducer, '');
   return (<PreviousTextStateContext.Provider key="previousText" value={previousText}>
-    <PreviousTextStateDispatchContext.Provider value={setPreviousText} />
-    {children}
+    <PreviousTextStateDispatchContext.Provider value={setPreviousText} >
+      {children}
+    </PreviousTextStateDispatchContext.Provider >
   </PreviousTextStateContext.Provider>);
 
 
