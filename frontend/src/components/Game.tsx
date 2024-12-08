@@ -5,7 +5,6 @@ import { ErrorProvider } from '../models/error_state.tsx';
 import { WebSocketProvider } from '../models/websocket_state.tsx';
 import { CurrentPlayerProvider } from '../models/current_player_state.tsx';
 import { GameStateProvider } from '../models/game_state.tsx';
-import { PreviousTextProvider } from '../models/previous_text_state.tsx';
 import { StoryProvider } from '../models/story_state.tsx';
 import { CurrentRoundProvider } from '../models/round_state.tsx';
 import React from 'react';
@@ -29,7 +28,6 @@ export function Game() {
             <WebSocketProvider>{null}</WebSocketProvider>,
             <StoryProvider key="story" >{null}</StoryProvider>,
             <CurrentPlayerProvider key="currentPlayer" >{null}</CurrentPlayerProvider>,
-            <PreviousTextProvider key="previousText" >{null}</PreviousTextProvider>,
             <CurrentRoundProvider key="currentRound" >{null}</CurrentRoundProvider>
         ]}>
             <div className="game-container">

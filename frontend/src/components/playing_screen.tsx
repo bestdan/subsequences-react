@@ -1,27 +1,52 @@
 
 
-import { useCurrentPlayer } from "../models/current_player_state.tsx";
+import { useCurrentPlayer, useSetCurrentPlayer } from "../models/current_player_state.tsx";
 import { usePlayers } from "../models/players_state.tsx";
-import { usePreviousText } from "../models/previous_text_state.tsx";
 import { useCurrentRound } from "../models/round_state.tsx";
 import { useSetStory, useStory } from "../models/story_state.tsx";
+import { MakeStoryEntry } from "./game_story.tsx";
 
 import { PlayerIdContext, TotalRoundsContext } from "./game_configs.tsx";
 import { ChangeEvent, useContext, useState } from "react";
+import { useGameCode } from "../models/game_code_state.tsx";
+import { useWebsocket } from "../models/websocket_state.tsx";
 
 export function PlayingScreen() {
 
+    const gameCode = useGameCode();
+    const websocket = useWebsocket();
     const players = usePlayers();
     const currentPlayer = useCurrentPlayer()
     const round = useCurrentRound();
     const totalRounds = useContext(TotalRoundsContext);
     const story = useStory()
     const setStory = useSetStory()
-    const previousText = usePreviousText();
 
     const [inputText, setInputText] = useState<string>('');
 
     const playerId = useContext(PlayerIdContext)
+
+    async function handleSubmitText() {
+        console.log('Submitting text:', {
+            gameCode,
+            playerId,
+            currentPlayer,
+            inputText
+        });
+
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            websocket.send(JSON.stringify({
+                type: 'submit_text',
+                data: {
+                    gameCode,
+                    text: inputText
+                }
+            }));
+
+            // Clear input text immediately
+            setInputText('');
+        }
+    };
 
     return (
         <div className="game-in-progress">
@@ -59,11 +84,9 @@ export function PlayingScreen() {
                     />
                     <p>{255 - inputText.length} characters remaining</p>
                     <button
-                        onClick={() => setStory}
+                        onClick={handleSubmitText}
                         disabled={inputText.length === 0}
-                    >
-                        Submit
-                    </button>
+                    >Submit</button>
                 </div>
             ) : (
                 <div>

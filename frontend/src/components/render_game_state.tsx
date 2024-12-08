@@ -11,7 +11,6 @@ import { useError, useSetError } from "../models/error_state.tsx";
 import { usePlayers, useSetPlayers } from "../models/players_state.tsx";
 import { useSetWebsocket } from "../models/websocket_state.tsx";
 import { useSetCurrentPlayer } from "../models/current_player_state.tsx";
-import { useSetPreviousText } from "../models/previous_text_state.tsx";
 import { GamePhase, useCurrentPhase, useSetCurrentPhase } from "../models/current_phase_state.tsx";
 import { useSetStory } from "../models/story_state.tsx";
 import { useSetCurrentRound } from "../models/round_state.tsx";
@@ -32,7 +31,6 @@ export function RenderGameState() {
   const setWebsocket = useSetWebsocket()
   const setStory = useSetStory();
   const setCurrentPlayer = useSetCurrentPlayer();
-  const setPreviousText = useSetPreviousText();
   const setCurrentPhase = useSetCurrentPhase();
   const setTotalRounds = useSetTotalRounds();
   const setCurrentRound = useSetCurrentRound();
@@ -90,7 +88,6 @@ export function RenderGameState() {
               });
 
               setCurrentPlayer(message.data.currentPlayer);
-              setPreviousText(message.data.previousText);
               setStory(message.data.story);
               setCurrentRound(message.data.round);
 
