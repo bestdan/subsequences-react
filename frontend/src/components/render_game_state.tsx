@@ -38,7 +38,7 @@ export function RenderGameState() {
 
   // WebSocket connection setup
   useEffect(() => {
-    if (gameState === 'waiting' || gameState === 'playing') {
+    if (gameState === GameStateFE.WAITING || gameState === GameStateFE.PLAYING) {
       const ws = new WebSocket(wsAddressValue);
       setWebsocket(ws);
 
@@ -142,7 +142,7 @@ export function RenderGameState() {
         }
       };
     }
-  }, [gameState, gamePhase, gameCode, playerId, wsAddressValue]);
+  }, [gameState, gamePhase, gameCode, playerId, wsAddressValue, players, setCurrentPhase, setCurrentPlayer, setCurrentRound, setError, setGameState, setPlayers, setStory, setTotalRounds, setWebsocket]);
 
   if (error) {
     return <div className="error-message">{error}</div>;

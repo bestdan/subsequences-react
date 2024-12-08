@@ -7,8 +7,3 @@ export interface StoryEntry {
 export function MakeStoryEntry(text: string, playerId: string): StoryEntry {
   return { text, playerId };
 }
-
-export interface GameStoryFinalData {
-  storyEntries: StoryEntry[];
-  playerId: string;
-}
