@@ -21,7 +21,6 @@ export function RenderGameState() {
   const playerId = useContext(PlayerIdContext);
   const wsAddressValue = useContext(wsAddress);
   const gameState = useGameState();
-  const gamePhase = useCurrentPhase();
   const gameCode = useGameCode()
   const error = useError();
   const players = usePlayers()
@@ -40,8 +39,11 @@ export function RenderGameState() {
   // WebSocket connection setup
   useEffect(() => {
     if (gameState === GameStateFE.WAITING || gameState === GameStateFE.PLAYING) {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        return;
+      }
       const ws = new WebSocket(wsAddressValue);
-      wsRef.current = ws;
+      setWebsocket(ws)
 
       ws.onopen = () => {
         console.log('WebSocket connected');
@@ -143,7 +145,7 @@ export function RenderGameState() {
         }
       };
     }
-  }, [gameState, gamePhase, players]);
+  }, [gameState]);
 
   if (error) {
     return <div className="error-message">{error}</div>;

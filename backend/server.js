@@ -16,24 +16,12 @@ const path = require("path");
 app.use(cors());
 app.use(express.json());
 
-// Add these lines to serve static files
-app.use(express.static(path.join(__dirname, "../frontend/build")));
-// Add this route to handle all other requests
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-});
-
+// First, define all your API routes
 app.get("/test", (req, res) => {
     console.log("Test endpoint hit");
     res.json({ status: "Server is running" });
 });
 
-// Store active games and their participants
-const games = new Map();
-// Keep track of all connected clients
-const clients = new Map();
-
-// REST endpoint for creating a new game
 app.post("/api/games", (req, res) => {
     try {
         const { playerId } = req.body;
@@ -64,12 +52,13 @@ app.post("/api/games", (req, res) => {
     }
 });
 
-// REST endpoint for checking if a game exists
 app.get("/api/games/:code", (req, res) => {
+
     try {
         const { code } = req.params;
         if (!games.has(code)) {
-            return res.status(404).json({ error: `Game ${code} not found` });
+            console.log('ooops')
+            return res.status(404).json({ error: "Game not found" });
         }
 
         const game = games.get(code);
@@ -101,6 +90,19 @@ app.get("/api/games/:code", (req, res) => {
         res.status(500).json({ error: "Failed to check game" });
     }
 });
+
+// THEN, after all API routes, add the static file serving
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// And finally, the catch-all route
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+});
+
+// Store active games and their participants
+const games = new Map();
+// Keep track of all connected clients
+const clients = new Map();
 
 // WebSocket connection handling
 wss.on("connection", (ws) => {
@@ -187,10 +189,11 @@ function handleJoinGame(ws, data) {
     const { gameCode, playerId } = data;
 
     if (!games.has(gameCode)) {
+        console.log('couldnt find game')
         ws.send(
             JSON.stringify({
                 type: "error",
-                data: { message: "Game not found" },
+                data: { message: "Game code not found" },
             }),
         );
         return;
@@ -202,7 +205,7 @@ function handleJoinGame(ws, data) {
     // Store game code and player ID in the WebSocket connection
     ws.gameCode = gameCode;
     ws.playerId = playerId;
-
+    console.log(`${playerId} attempting to join`)
     // Notify the new player
     ws.send(
         JSON.stringify({
@@ -246,7 +249,7 @@ function handleStartGame(ws, data) {
         ws.send(
             JSON.stringify({
                 type: "error",
-                data: { message: "Game not found" },
+                data: { message: "Game gameCode not found" },
             }),
         );
         return;

@@ -21,20 +21,21 @@ export function JoinGameInput() {
 
   async function joinGame() {
     try {
-
       console.log('Joining game:', localGameCode);
       setGameState(GameStateFE.JOINING);
       setError('');
 
       const response = await fetch(`${httpAddressBase}/api/games/${localGameCode}`);
-      console.log(response)
+
       if (!response.ok) {
         throw new Error('Game not found');
       }
 
       const data = await response.json();
+
       setGameCode(localGameCode);
       console.log('Joined game:', data);
+
       setPlayers(new Set([...data.players, playerId]));
       setGameState(GameStateFE.WAITING);
       // Notify WebSocket server about the new player
