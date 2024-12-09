@@ -27,6 +27,7 @@ export function JoinGameInput() {
       setError('');
 
       const response = await fetch(`${httpAddressBase}/api/games/${localGameCode}`);
+      console.log(response)
       if (!response.ok) {
         throw new Error('Game not found');
       }

@@ -69,7 +69,7 @@ app.get("/api/games/:code", (req, res) => {
     try {
         const { code } = req.params;
         if (!games.has(code)) {
-            return res.status(404).json({ error: "Game not found" });
+            return res.status(404).json({ error: `Game ${code} not found` });
         }
 
         const game = games.get(code);

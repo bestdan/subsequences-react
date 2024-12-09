@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { GameStoryFinal } from "./game_final.tsx";
 import { LandingMenu } from "./landing_menu.tsx";
 import { GameLobby } from "./game_lobby.tsx";
@@ -34,13 +34,14 @@ export function RenderGameState() {
   const setCurrentPhase = useSetCurrentPhase();
   const setTotalRounds = useSetTotalRounds();
   const setCurrentRound = useSetCurrentRound();
+  const wsRef = useRef<WebSocket | null>(null);
 
 
   // WebSocket connection setup
   useEffect(() => {
     if (gameState === GameStateFE.WAITING || gameState === GameStateFE.PLAYING) {
       const ws = new WebSocket(wsAddressValue);
-      setWebsocket(ws);
+      wsRef.current = ws;
 
       ws.onopen = () => {
         console.log('WebSocket connected');
@@ -142,7 +143,7 @@ export function RenderGameState() {
         }
       };
     }
-  }, [gameState, gamePhase, gameCode, playerId, wsAddressValue, players, setCurrentPhase, setCurrentPlayer, setCurrentRound, setError, setGameState, setPlayers, setStory, setTotalRounds, setWebsocket]);
+  }, [gameState, gamePhase, players]);
 
   if (error) {
     return <div className="error-message">{error}</div>;

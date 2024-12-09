@@ -28,11 +28,9 @@ export function GameLobby() {
 
 
     if (!players) return <p>Loading</p>
-    let playersArray = Array.from(players);
 
     console.log('raw players')
     console.log(players);
-    console.log(playersArray);
 
     return (
         <div className="game-lobby">
