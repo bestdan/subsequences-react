@@ -11,6 +11,8 @@ const PORT = process.env.PORT || 3001;
 
 console.log("Initializing server...");
 
+const path = require("path");
+
 app.use(cors());
 app.use(express.json());
 
